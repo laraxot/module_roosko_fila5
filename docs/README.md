@@ -229,4 +229,6 @@ aggiuntivo). npm: `qr-scanner`, `vite`, `laravel-vite-plugin`.
 
 ## Audit
 
+Manuale d'uso per ruolo: [manuale/README.md](manuale/README.md).
+
 Stato del progetto, rilievi con evidenze, backlog P0–P3 e roadmap: [audit/README.md](audit/README.md).
