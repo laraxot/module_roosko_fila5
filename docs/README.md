@@ -75,7 +75,7 @@ Supporto: `RunInPlantTransactionAction`, `GenerateDocumentCodeAction` (progressi
 `lockForUpdate`), `ResolveWasteLotAction`, `ResolvePlantSiteAction` (magazzino → sito tramite le regole
 d'area), `ResolvePlantRegisterAction`, `FindRentriCredentialAction`, `SubmitDigitalFirAcceptanceAction`,
 `QueueUnitLabelAction`, `GetLotLoadEntryIdsAction`, `GetLotStockKgAction`, `TraceLotOriginAction`,
-`ResolveScannedCodeAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
+`ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
 
 ## Flussi
 
@@ -111,6 +111,26 @@ Pannello `roosko::admin` (`/roosko/admin`): dashboard con `AuthorizationUsageWid
 resource `DeliveryResource` (registra arrivo, pesa tara, accetta con repeater delle unità, respingi),
 `WasteLotResource` (view con unità, posizione, tracciabilità a monte), `ShipmentResource` (righe con
 carico da scansione, spedisci), `AreaWasteRuleResource`.
+
+### Lavorazioni in corso (`TreatmentPage`, `/roosko/admin/treatments`)
+
+Gruppo «Impianto». Tabella degli ordini di Processing `in_progress` (avviati con «Avvia trattamento»
+dalla UI operatore): ordine, macchina, operazione, kg in input, kg di output già registrati, avvio.
+Per ogni riga:
+
+- **Registra prodotto** (`RegisterTreatmentProductTableAction` → `RegisterTreatmentOutputAction`):
+  codice EER, stato fisico, classi HP (solo per EER pericoloso), classificazione, destino, codice
+  lotto EoW (solo per End of Waste), tipo output (default prodotto), contenitore, peso netto, tara,
+  posizione facoltativa (posizioni del magazzino degli input, `ResolveOrderWarehouseAction`). Crea
+  lotto, unità con QR ed etichetta e, se il prodotto è ancora un rifiuto, il carico `new_production`.
+  Lo stato del form diventa `TreatmentOutputData::fromFormState()`. Da preferire al bottone
+  «Registra output» di Processing, che crea l'unità senza lotto (niente EER né registro).
+- **Completa trattamento** (`CompleteTreatmentTableAction` → `CompleteTreatmentAction`): conferma
+  con «Forza la chiusura»; se la perdita supera `processing.max_loss_pct` il modale resta aperto con
+  l'errore di dominio.
+
+Testi in `lang/{it,en}/treatment.php` (pagina, colonne, bottoni), `register_treatment_product_table.php`
+e `complete_treatment_table.php` (modali e campi).
 
 ### UI operatore (`OperatorScanPage`, `/roosko/admin/operator`)
 
