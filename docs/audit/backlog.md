@@ -32,7 +32,12 @@ Sforzo: S (meno di 1 giorno), M (1–3 giorni), L (piu' di 3 giorni). Riferiment
 
 ## P1 — Essential
 
-### B-01 · Decisione: chi e' il tenant del pannello cliente
+### B-01 · Decisione: chi e' il tenant del pannello cliente — **DECISA**
+
+Scelta nella story `01.area-cliente-cantieri`: il cliente e' `User\Tenant` e il legame passa da
+`operators.tenant_id` (nessun `tenant_id` sui dati di dominio, scope nelle resource). Restano le
+opzioni sotto come storico della discussione.
+
 - **Evidenza**: B3, B4, B5 · **Blocca**: B-04, B-05
 - **Opzione A (raccomandata)**: il tenant Filament del pannello cliente e' `Waste\Operator` (il
   produttore), con pivot `operator_user` e ownership via le relazioni gia' esistenti
@@ -47,7 +52,7 @@ Sforzo: S (meno di 1 giorno), M (1–3 giorni), L (piu' di 3 giorni). Riferiment
   (operator → tenant) da tenere coerente, contrario a "no duplicate state".
 - **Accettazione**: decisione registrata nella story `01.area-cliente-cantieri` con la motivazione. · **Sforzo** S
 
-### B-04 · Pannello cliente "I miei cantieri" (sola lettura)
+### B-04 · Pannello cliente "I miei cantieri" — **implementato** (`4d7d350`, review `7e9b90a`), da verificare con i test
 - **Dipende da**: B-01, B-03 · **Strategia**: pannello con `$hasTenancy = true` e
   `$componentsDirectory = 'Customer'`, ospitato da Roosko. Resource in sola lettura: cantieri
   (`OperatorSite`), FIR e conferimenti dei suoi cantieri, stato e quantita' accettate/respinte. Niente registrazione tenant.

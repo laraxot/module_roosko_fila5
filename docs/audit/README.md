@@ -28,10 +28,10 @@ Il **dominio e' ben progettato**: 7 moduli separati, azioni Spatie, registro imm
 rettifiche e numerazione concorrente testata, guardie di autorizzazione allo stoccaggio, mass
 balance. Il **prodotto non e' ancora pronto per utenti reali** per tre motivi verificati:
 
-1. **L'area cliente non esiste ancora.** Il requisito "il cliente entra e vede i suoi cantieri"
-   ha l'infrastruttura di tenancy, ma nessun collegamento tra utenti e cliente (`Waste\Operator`
-   produttore) e nessun pannello cliente su `dev`. La story `01.area-cliente-cantieri` e' in
-   corso in un'altra sessione e non e' ancora pubblicata.
+1. **L'area cliente c'e' ma non e' verificata in esecuzione.** Il pannello `roosko::customer`
+   (story `01.area-cliente-cantieri`, commit `4d7d350`) e' arrivato su `dev` durante l'audit. La
+   review indipendente non ha trovato fughe fra clienti e ha corretto i kg per cantiere (`7e9b90a`),
+   ma i test di isolamento non sono stati eseguiti (vedi limiti).
 2. **RENTRI non e' verificato.** Il client e' completo come struttura (JWT, firma, digest,
    polling), ma `Rentri/config` contiene **35 valori marcati `DA VERIFICARE`** sullo Swagger
    demo. Nessuna trasmissione e' stata provata contro l'ambiente demo.
@@ -77,7 +77,7 @@ fonti o da esecuzione (alta), oppure solo dalla lettura del codice (media).
 |---|---|---|
 | Architettura di dominio | 80 | moduli generici separati dal dominio, azioni, guardie, immutabilita' |
 | Completezza funzionale (impianto) | 65 | flussi principali presenti e testati a livello di azione; UX non verificata |
-| Completezza funzionale (area cliente) | 10 | solo infrastruttura condivisa |
+| Completezza funzionale (area cliente) | 65 *(provvisorio)* | pannello, scope, test scritti; manca l'esecuzione dei test |
 | Sicurezza | 60 *(provvisorio)* | policy per permesso e bypass super-admin; isolamento cliente assente; nessun SAST eseguito |
 | Testing | 50 *(provvisorio)* | buona copertura delle regole di dominio, ma suite non eseguita e CI rotta |
 | Production readiness | 25 | CI rotta, repo non riproducibile, RENTRI non verificato |
@@ -87,7 +87,7 @@ fonti o da esecuzione (alta), oppure solo dalla lettura del codice (media).
 
 | Area | Stato | Confidenza | Problemi critici | Priorita' |
 |---|---|---|---|---|
-| Area cliente / cantieri | da costruire | alta | manca il legame utente↔cliente; dominio senza `tenant_id` | P1 |
+| Area cliente / cantieri | implementata, revisionata, test non eseguiti | media | dipende da B-03 (permessi) per gli utenti non super-admin | P1 |
 | Tenancy condivisa (User/Xot) | corretta il 2026-11-05 | media (test non eseguiti) | `tenant_id` saltato con chiave stringa (risolto) | P0 → fatto |
 | RENTRI | implementato, non verificato | alta | 35 valori `DA VERIFICARE` | P1 |
 | Repo base / CI | rotto | alta | Xot gitlink senza `.gitmodules`; CI PHP 8.3 e Fixcity | P0 |
