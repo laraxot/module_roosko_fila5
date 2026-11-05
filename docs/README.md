@@ -51,10 +51,7 @@ recupero, smaltimento, bonifica), registro di carico/scarico, invii RENTRI e UI 
 | `ShipmentItem` | `shipment_items` | unità caricata, snapshot dei kg |
 | `AreaWasteRule` | `area_waste_rules` | codice autorizzato (AuthorizedWaste) ammesso in un'area (R13/D15), limite d'area |
 <<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-=======
 | `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
->>>>>>> laraxot/dev
 =======
 | `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
 >>>>>>> .merge_file_AyBssG
@@ -85,11 +82,8 @@ d'area), `ResolvePlantRegisterAction`, `FindRentriCredentialAction`, `SubmitDigi
 `QueueUnitLabelAction`, `GetLotLoadEntryIdsAction`, `GetLotStockKgAction`, `TraceLotOriginAction`,
 <<<<<<< .merge_file_BfF0cD
 <<<<<<< HEAD
-<<<<<<< HEAD
 `ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
-=======
 `ResolveScannedCodeAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
->>>>>>> laraxot/dev
 =======
 `ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
 >>>>>>> laraxot/dev
@@ -139,9 +133,6 @@ carico da scansione, spedisci), `AreaWasteRuleResource`.
 <<<<<<< .merge_file_O6Sfpp
 <<<<<<< .merge_file_BfF0cD
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
 =======
 >>>>>>> .merge_file_AyBssG
 =======
@@ -210,9 +201,6 @@ Testi in `lang/{it,en}/treatment.php` (pagina, colonne, bottoni), `register_trea
 e `complete_treatment_table.php` (modali e campi).
 
 <<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======

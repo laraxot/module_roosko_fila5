@@ -20,9 +20,6 @@ trait NotifiesDomainErrors
     /**
 <<<<<<< .merge_file_T0t0VD
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
 =======
 >>>>>>> .merge_file_gM43VW
      * `$successTitle` puo' dipendere dal risultato della action (es. il codice dell'unita' creata).
@@ -37,15 +34,12 @@ trait NotifiesDomainErrors
         try {
             $result = $callback();
 <<<<<<< .merge_file_T0t0VD
-<<<<<<< HEAD
-=======
      * @param  Closure(): mixed  $callback
      */
     protected function runDomainAction(Closure $callback, string $successTitle): void
     {
         try {
             $callback();
->>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======
@@ -60,9 +54,6 @@ trait NotifiesDomainErrors
             $this->halt();
 <<<<<<< .merge_file_T0t0VD
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
 =======
 >>>>>>> .merge_file_gM43VW
 
@@ -74,12 +65,9 @@ trait NotifiesDomainErrors
             ->title($successTitle instanceof Closure ? $successTitle($result) : $successTitle)
             ->send();
 <<<<<<< .merge_file_T0t0VD
-<<<<<<< HEAD
-=======
         }
 
         Notification::make()->success()->title($successTitle)->send();
->>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======

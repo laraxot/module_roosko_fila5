@@ -10,10 +10,7 @@ use Modules\Labeling\Enums\IdentifierTypeEnum;
 use Modules\Processing\Actions\RegisterProcessingOutputAction;
 <<<<<<< .merge_file_qhMcAf
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
 use Modules\Processing\Models\ProcessingInput;
->>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======
@@ -31,10 +28,7 @@ use Modules\Warehouse\Datas\StockUnitData;
 use Modules\Warehouse\Models\StockUnit;
 <<<<<<< .merge_file_qhMcAf
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
 use Modules\Warehouse\Models\Warehouse;
->>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======
@@ -49,11 +43,8 @@ use Spatie\QueueableAction\QueueableAction;
  *
 <<<<<<< .merge_file_qhMcAf
 <<<<<<< HEAD
-<<<<<<< HEAD
  * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
-=======
  * Il magazzino e' quello delle unita' in input dell'ordine.
->>>>>>> laraxot/dev
 =======
  * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
 >>>>>>> laraxot/dev
@@ -73,11 +64,8 @@ class RegisterTreatmentOutputAction
 
 <<<<<<< .merge_file_qhMcAf
 <<<<<<< HEAD
-<<<<<<< HEAD
         $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
-=======
         $warehouse = $this->orderWarehouse($order);
->>>>>>> laraxot/dev
 =======
         $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
 >>>>>>> laraxot/dev
@@ -136,8 +124,6 @@ class RegisterTreatmentOutputAction
     }
 <<<<<<< .merge_file_qhMcAf
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
     private function orderWarehouse(ProcessingOrder $order): Warehouse
     {
@@ -150,7 +136,6 @@ class RegisterTreatmentOutputAction
 
         return Warehouse::query()->findOrFail($unit->warehouse_id);
     }
->>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======
