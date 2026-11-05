@@ -226,3 +226,7 @@ aggiuntivo). npm: `qr-scanner`, `vite`, `laravel-vite-plugin`.
 - Etichette delle posizioni: il codice stampato da Labeling per una `Location` è `LOC-{magazzino}-{codice}`;
   la UI operatore la risolve tramite l'identificatore assegnato (consigliato assegnarlo a tutte le posizioni).
 - Ricalcolo dei limiti annui (`max_annual_kg`) nei widget (oggi solo il limite istantaneo).
+
+## Audit
+
+Stato del progetto, rilievi con evidenze, backlog P0–P3 e roadmap: [audit/README.md](audit/README.md).
