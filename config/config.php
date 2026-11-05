@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'navigation_sort' => 1,
     'name' => 'Roosko',
     'description' => 'Gestione impianto di trattamento e cernita rifiuti',
     'icon' => 'heroicon-o-truck',
