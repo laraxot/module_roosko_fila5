@@ -8,10 +8,16 @@ use Carbon\CarbonImmutable;
 use Modules\Labeling\Actions\AssignIdentifierAction;
 use Modules\Labeling\Enums\IdentifierTypeEnum;
 use Modules\Processing\Actions\RegisterProcessingOutputAction;
+<<<<<<< .merge_file_qhMcAf
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 use Modules\Processing\Models\ProcessingInput;
 >>>>>>> laraxot/dev
+=======
+>>>>>>> laraxot/dev
+=======
+>>>>>>> .merge_file_4IoINe
 use Modules\Processing\Models\ProcessingOrder;
 use Modules\Roosko\Datas\TreatmentOutputData;
 use Modules\Roosko\Enums\LotClassificationEnum;
@@ -23,10 +29,16 @@ use Modules\Waste\Enums\RegisterCauseEnum;
 use Modules\Waste\Enums\RegisterEntryTypeEnum;
 use Modules\Warehouse\Datas\StockUnitData;
 use Modules\Warehouse\Models\StockUnit;
+<<<<<<< .merge_file_qhMcAf
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 use Modules\Warehouse\Models\Warehouse;
 >>>>>>> laraxot/dev
+=======
+>>>>>>> laraxot/dev
+=======
+>>>>>>> .merge_file_4IoINe
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -35,11 +47,19 @@ use Spatie\QueueableAction\QueueableAction;
  * stampa etichetta. Se il prodotto e' ancora un rifiuto (es. scarto 19 12 12) scrive il carico
  * di nuova produzione sul registro; End of Waste e sottoprodotti non vanno sul registro rifiuti.
  *
+<<<<<<< .merge_file_qhMcAf
+<<<<<<< HEAD
 <<<<<<< HEAD
  * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
 =======
  * Il magazzino e' quello delle unita' in input dell'ordine.
 >>>>>>> laraxot/dev
+=======
+ * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
+>>>>>>> laraxot/dev
+=======
+ * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
+>>>>>>> .merge_file_4IoINe
  */
 class RegisterTreatmentOutputAction
 {
@@ -51,11 +71,19 @@ class RegisterTreatmentOutputAction
             throw LotException::eowBatchCodeRequired();
         }
 
+<<<<<<< .merge_file_qhMcAf
+<<<<<<< HEAD
 <<<<<<< HEAD
         $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
 =======
         $warehouse = $this->orderWarehouse($order);
 >>>>>>> laraxot/dev
+=======
+        $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
+>>>>>>> laraxot/dev
+=======
+        $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
+>>>>>>> .merge_file_4IoINe
 
         $unit = app(RunInPlantTransactionAction::class)->execute(function () use ($order, $data, $warehouse): StockUnit {
             $lot = WasteLot::query()->create([
@@ -106,6 +134,8 @@ class RegisterTreatmentOutputAction
 
         return $unit;
     }
+<<<<<<< .merge_file_qhMcAf
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -121,4 +151,8 @@ class RegisterTreatmentOutputAction
         return Warehouse::query()->findOrFail($unit->warehouse_id);
     }
 >>>>>>> laraxot/dev
+=======
+>>>>>>> laraxot/dev
+=======
+>>>>>>> .merge_file_4IoINe
 }
