@@ -15,6 +15,11 @@ class DeliveryException extends RooskoException
         return new self(self::translated('delivery.fir_already_received', ['fir' => $firNumber, 'delivery' => $deliveryCode]));
     }
 
+    public static function firNotReceivable(string $firNumber, string $status): self
+    {
+        return new self(self::translated('delivery.fir_not_receivable', ['fir' => $firNumber, 'status' => $status]));
+    }
+
     public static function wrongRecipientSite(string $firNumber): self
     {
         return new self(self::translated('delivery.wrong_recipient_site', ['fir' => $firNumber]));

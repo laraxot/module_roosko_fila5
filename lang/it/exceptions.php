@@ -6,6 +6,7 @@ return [
     'invalid_transition' => ':code: passaggio di stato da «:from» a «:to» non consentito',
     'delivery' => [
         'fir_already_received' => 'Il FIR :fir è già in carico con il conferimento :delivery',
+        'fir_not_receivable' => 'Il FIR :fir è in stato «:status» e non può essere conferito',
         'wrong_recipient_site' => 'Il FIR :fir è destinato a un altro impianto',
         'not_weighed' => 'Il conferimento :delivery non ha una pesata in ingresso aperta',
         'units_mismatch' => 'Le unità sommano :units kg ma i kg accettati sono :accepted',

@@ -6,6 +6,7 @@ return [
     'invalid_transition' => ':code: status change from “:from” to “:to” is not allowed',
     'delivery' => [
         'fir_already_received' => 'FIR :fir is already in delivery :delivery',
+        'fir_not_receivable' => 'FIR :fir is «:status» and cannot be received',
         'wrong_recipient_site' => 'FIR :fir is addressed to another plant',
         'not_weighed' => 'Delivery :delivery has no open inbound weighing',
         'units_mismatch' => 'Units add up to :units kg but accepted kg are :accepted',

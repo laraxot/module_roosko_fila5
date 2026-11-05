@@ -20,6 +20,9 @@ use Webmozart\Assert\Assert;
  * non entra in impianto). Il FIR registra il respingimento con il motivo; per FIR digitale
  * l'esito va a RENTRI (accodato dopo il commit).
  *
+ * Conferimento e FIR si rileggono sotto lock dentro la transazione (LockDeliveryForDecisionAction):
+ * due respingimenti concorrenti non si sovrappongono.
+ *
  * Kg respinti = netto della pesata se chiusa, altrimenti la quantita' dichiarata sul FIR.
  */
 class RejectDeliveryAction
@@ -34,18 +37,22 @@ class RejectDeliveryAction
         );
         Assert::stringNotEmpty(trim($reason));
 
-        $fir = Fir::query()->findOrFail($delivery->fir_id);
         $plant = OperatorSite::query()->findOrFail($delivery->plant_site_id);
 
-        app(RunInPlantTransactionAction::class)->execute(function () use ($delivery, $fir, $reason): void {
-            app(RecordFirAcceptanceAction::class)->execute($fir, AcceptanceEnum::REJECTED, 0.0, $delivery->arrived_at, $reason);
+        $fir = app(RunInPlantTransactionAction::class)->execute(function () use ($delivery, $reason): Fir {
+            ['delivery' => $locked, 'fir' => $fir] = app(LockDeliveryForDecisionAction::class)->execute($delivery, DeliveryStatusEnum::REJECTED);
 
-            $delivery->forceFill([
+            app(RecordFirAcceptanceAction::class)->execute($fir, AcceptanceEnum::REJECTED, 0.0, $locked->arrived_at, $reason);
+
+            $locked->forceFill([
                 'status' => DeliveryStatusEnum::REJECTED,
                 'accepted_kg' => 0,
-                'rejected_kg' => $this->rejectedKg($delivery, $fir),
+                'rejected_kg' => $this->rejectedKg($locked, $fir),
                 'rejection_reason' => $reason,
             ])->save();
+            $delivery->setRawAttributes($locked->getAttributes(), true);
+
+            return $fir;
         });
 
         app(SubmitDigitalFirAcceptanceAction::class)->execute($fir, $plant);

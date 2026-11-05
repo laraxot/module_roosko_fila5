@@ -39,7 +39,8 @@ use Webmozart\Assert\Assert;
 /**
  * Accettazione (totale o parziale) di un conferimento.
  *
- * In un'unica transazione:
+ * In un'unica transazione, che come prima cosa rilegge e blocca conferimento e FIR
+ * (LockDeliveryForDecisionAction: niente doppia accettazione concorrente):
  * 1. verifica che l'impianto sia autorizzato per codice EER del FIR e operazione;
  * 2. verifica che la somma delle unita' coincida con i kg accettati;
  * 3. per ogni unita': WasteLot (contenuto) + StockUnit (contenitore, movimento `receipt`,
@@ -72,18 +73,20 @@ class AcceptDeliveryAction
         $ewc = EwcCode::query()->findOrFail($fir->ewc_code_id);
         $this->assertAuthorized($plant, $ewc, $data);
 
-        /** @var list<StockUnit> $units */
-        $units = app(RunInPlantTransactionAction::class)->execute(function () use ($delivery, $data, $fir, $plant, $target): array {
+        /** @var array{units: list<StockUnit>, fir: Fir} $result */
+        $result = app(RunInPlantTransactionAction::class)->execute(function () use ($delivery, $data, $plant, $target): array {
+            ['delivery' => $locked, 'fir' => $fir] = app(LockDeliveryForDecisionAction::class)->execute($delivery, $target);
+
             $physicalState = $fir->physical_state;
             $hazardProperties = array_values($fir->hazard_properties->all());
             $producerId = $fir->producer_operator_id;
 
             $units = array_map(
-                fn (AcceptedUnitData $unit): StockUnit => $this->createUnit($delivery, $fir, $unit, $physicalState, $hazardProperties, $producerId),
+                fn (AcceptedUnitData $unit): StockUnit => $this->createUnit($locked, $fir, $unit, $physicalState, $hazardProperties, $producerId),
                 $data->units,
             );
 
-            $arrivedAt = $delivery->arrived_at;
+            $arrivedAt = $locked->arrived_at;
             app(PostRegisterEntryAction::class)->execute(new RegisterEntryData(
                 registerId: app(ResolvePlantRegisterAction::class)->execute($plant)->id,
                 type: RegisterEntryTypeEnum::LOAD,
@@ -96,25 +99,26 @@ class AcceptDeliveryAction
                 firId: $fir->id,
                 counterpartOperatorId: $producerId,
                 operationAt: $arrivedAt,
-                reference: $delivery,
+                reference: $locked,
             ));
 
             app(RecordFirAcceptanceAction::class)->execute($fir, $data->acceptance(), $data->acceptedKg, $arrivedAt, $data->rejectionReason);
 
-            $delivery->forceFill([
+            $locked->forceFill([
                 'status' => $target,
                 'accepted_kg' => $data->acceptedKg,
                 'rejected_kg' => $data->rejectedKg,
                 'rejection_reason' => $data->rejectionReason,
             ])->save();
+            $delivery->setRawAttributes($locked->getAttributes(), true);
 
-            return $units;
+            return ['units' => $units, 'fir' => $fir];
         });
 
-        foreach ($units as $unit) {
+        foreach ($result['units'] as $unit) {
             app(QueueUnitLabelAction::class)->execute($unit);
         }
-        app(SubmitDigitalFirAcceptanceAction::class)->execute($fir, $plant);
+        app(SubmitDigitalFirAcceptanceAction::class)->execute($result['fir'], $plant);
 
         return $delivery;
     }
