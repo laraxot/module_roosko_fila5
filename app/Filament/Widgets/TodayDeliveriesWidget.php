@@ -76,9 +76,13 @@ class TodayDeliveriesWidget extends XotBaseTableWidget
      */
     protected function getTableQuery(): Builder
     {
+<<<<<<< HEAD
         /** @var Builder<Delivery> $query */
         $query = Delivery::query()->whereDate('arrived_at', today())->orderByDesc('arrived_at');
 
         return $query;
+=======
+        return Delivery::query()->whereDate('arrived_at', today())->orderByDesc('arrived_at');
+>>>>>>> laraxot/dev
     }
 }

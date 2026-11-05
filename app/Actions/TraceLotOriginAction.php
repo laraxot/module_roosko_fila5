@@ -8,8 +8,13 @@ use Illuminate\Support\Collection;
 use Modules\Processing\Actions\TraceUpstreamAction;
 use Modules\Roosko\Models\Delivery;
 use Modules\Roosko\Models\WasteLot;
+<<<<<<< HEAD
 use Modules\Warehouse\Models\StockUnit;
 use Modules\Waste\Models\Fir;
+=======
+use Modules\Waste\Models\Fir;
+use Modules\Warehouse\Models\StockUnit;
+>>>>>>> laraxot/dev
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -35,7 +40,10 @@ class TraceLotOriginAction
             $shares[$node->stockUnitId] = $node->cumulativeShare;
         }
 
+<<<<<<< HEAD
         /** @var \Illuminate\Database\Eloquent\Collection<int, StockUnit> $units */
+=======
+>>>>>>> laraxot/dev
         $units = StockUnit::query()->withoutGlobalScopes()->whereIn('id', array_keys($shares))->get();
         $resolver = app(ResolveWasteLotAction::class);
 

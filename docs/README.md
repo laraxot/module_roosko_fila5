@@ -52,6 +52,10 @@ recupero, smaltimento, bonifica), registro di carico/scarico, invii RENTRI e UI 
 | `AreaWasteRule` | `area_waste_rules` | codice autorizzato (AuthorizedWaste) ammesso in un'area (R13/D15), limite d'area |
 <<<<<<< .merge_file_BfF0cD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+| `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
+>>>>>>> laraxot/dev
 =======
 | `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
 >>>>>>> laraxot/dev
@@ -86,8 +90,13 @@ d'area), `ResolvePlantRegisterAction`, `FindRentriCredentialAction`, `SubmitDigi
 <<<<<<< .merge_file_BfF0cD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 `ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
 =======
+`ResolveScannedCodeAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
+>>>>>>> laraxot/dev
+=======
+`ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
 `ResolveScannedCodeAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
 >>>>>>> laraxot/dev
 =======
@@ -97,6 +106,13 @@ d'area), `ResolvePlantRegisterAction`, `FindRentriCredentialAction`, `SubmitDigi
 `ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
 >>>>>>> .merge_file_AyBssG
 
+<<<<<<< HEAD
+=======
+Area clienti: `GetCustomerOperatorIdsAction` (soggetti del cliente, base di ogni scope),
+`ResolveCustomerSiteOperatorAction` (soggetto del cantiere creato dal cliente),
+`GetCustomerSiteDeliveredKgAction` (kg accettati per cantiere, anche da una data).
+
+>>>>>>> laraxot/dev
 ## Flussi
 
 1. **Conferimento** — `ReceiveDeliveryAction` (pesata inbound aperta col lordo, FIR → `delivered`) →
@@ -132,6 +148,7 @@ resource `DeliveryResource` (registra arrivo, pesa tara, accetta con repeater de
 `WasteLotResource` (view con unità, posizione, tracciabilità a monte), `ShipmentResource` (righe con
 carico da scansione, spedisci), `AreaWasteRuleResource`.
 
+<<<<<<< HEAD
 <<<<<<< .merge_file_BfF0cD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -139,6 +156,58 @@ carico da scansione, spedisci), `AreaWasteRuleResource`.
 >>>>>>> laraxot/dev
 =======
 >>>>>>> .merge_file_AyBssG
+=======
+<<<<<<< .merge_file_O6Sfpp
+<<<<<<< .merge_file_BfF0cD
+<<<<<<< HEAD
+=======
+>>>>>>> .merge_file_AyBssG
+=======
+### Area clienti (`roosko::customer`, `/roosko/customer/{cliente}`)
+
+Pannello separato (`CustomerPanelProvider`, titolo «Roosko — Area clienti») per le imprese che
+conferiscono all'impianto. Tenancy Filament: il cliente è il `Tenant` del modulo User
+(`XotData::getTenantClass()`), identificato nell'URL dallo `slug`. Scopre solo
+`app/Filament/Customer/{Resources,Pages,Widgets}`: nessuna resource amministrativa.
+Story: [area-cliente-cantieri](stories/01.area-cliente-cantieri.story.md).
+
+| Voce di menu (gruppo «I miei rifiuti») | Resource | Modello | Operazioni |
+|---|---|---|---|
+| Riepilogo (home) | `CustomerDashboard` | — | widget «Conferito nel mese per cantiere», «Ultimi conferimenti» (10) |
+| Cantieri (`/sites`) | `CustomerSiteResource` | `Waste\OperatorSite` (`is_plant = false`) | elenco, crea, modifica, dettaglio; colonne nome, n. iscrizione RENTRI, attivo, kg conferiti |
+| Conferimenti (`/deliveries`) | `CustomerDeliveryResource` | `Delivery` | elenco e dettaglio: codice, arrivo, FIR, cantiere, EER, kg accettati, stato |
+| Formulari (`/firs`) | `CustomerFirResource` | `Waste\Fir` | elenco e dettaglio: numero, data, cantiere, EER, quantità, stato |
+
+**Cosa vede il cliente.** Il legame record → cliente è indiretto e passa sempre dai suoi soggetti
+Waste (`operators.tenant_id`, unica fonte): `GetCustomerOperatorIdsAction::execute(?Model $tenant): list<int>`.
+Cantieri = unità locali non d'impianto di quei soggetti; FIR = `producer_operator_id` fra quei
+soggetti; conferimenti = quelli con un FIR del cliente. Le resource estendono `CustomerBaseResource`:
+`$isScopedToTenant = false` (niente scope automatico di Filament), scope in `getEloquentQuery()`, che
+usano anche route binding, badge e widget. Senza cliente corrente le query non restituiscono nulla.
+
+**Operazioni.** Le policy dei modelli restano del personale dell'impianto; nell'area clienti
+`CustomerBaseResource::getAuthorizationResponse()` ammette solo le abilità della resource
+(`viewAny`/`view`, più `create`/`update` per i cantieri) e solo su record del cliente. In creazione
+del cantiere `operator_id` e `is_plant = false` li fissa il server (`ResolveCustomerSiteOperatorAction`):
+con un solo soggetto si usa quello, con più soggetti il cliente sceglie fra i suoi.
+I kg per cantiere li calcola `GetCustomerSiteDeliveredKgAction` (FIR e conferimenti su connessioni
+diverse: due query, niente join).
+
+**Come dare accesso a un cliente.**
+
+1. Modulo User: creare il cliente (`Tenant`, nome e slug: lo slug è il pezzo di URL).
+2. Modulo User: creare l'utente (o usarne uno esistente) e aggiungerlo come membro del cliente
+   (`tenant_user`). Un utente può essere membro di più clienti e passa dall'uno all'altro dal menu.
+3. Assegnare all'utente il ruolo `roosko::customer` (nome = id del pannello, richiesto da
+   `BaseUser::canAccessPanel`; il ruolo lo crea `CustomerRoleSeeder`).
+4. Pannello Waste, scheda del soggetto (impresa produttrice): campo *Cliente* = il cliente. Un
+   cliente può avere più soggetti (gruppo di imprese).
+
+L'utente entra da `/roosko/customer/login` e arriva su `/roosko/customer/{slug}`. Senza ruolo o senza
+clienti non entra; un cliente di cui non è membro risponde 404.
+
+>>>>>>> .merge_file_DDgA5i
+>>>>>>> laraxot/dev
 ### Lavorazioni in corso (`TreatmentPage`, `/roosko/admin/treatments`)
 
 Gruppo «Impianto». Tabella degli ordini di Processing `in_progress` (avviati con «Avvia trattamento»
@@ -161,6 +230,9 @@ e `complete_treatment_table.php` (modali e campi).
 
 <<<<<<< .merge_file_BfF0cD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> laraxot/dev
 =======
 >>>>>>> laraxot/dev
 =======
@@ -213,3 +285,12 @@ aggiuntivo). npm: `qr-scanner`, `vite`, `laravel-vite-plugin`.
 - Etichette delle posizioni: il codice stampato da Labeling per una `Location` è `LOC-{magazzino}-{codice}`;
   la UI operatore la risolve tramite l'identificatore assegnato (consigliato assegnarlo a tutte le posizioni).
 - Ricalcolo dei limiti annui (`max_annual_kg`) nei widget (oggi solo il limite istantaneo).
+<<<<<<< HEAD
+=======
+
+## Audit
+
+Manuale d'uso per ruolo: [manuale/README.md](manuale/README.md).
+
+Stato del progetto, rilievi con evidenze, backlog P0–P3 e roadmap: [audit/README.md](audit/README.md).
+>>>>>>> laraxot/dev

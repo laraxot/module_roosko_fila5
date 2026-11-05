@@ -8,7 +8,10 @@ use Modules\Roosko\Models\Delivery;
 use Modules\Roosko\Models\WasteLot;
 use Modules\Waste\Enums\RegisterEntryTypeEnum;
 use Modules\Waste\Models\RegisterEntry;
+<<<<<<< HEAD
 use Modules\Xot\Actions\Cast\SafeIntCastAction;
+=======
+>>>>>>> laraxot/dev
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -36,7 +39,11 @@ class GetLotLoadEntryIdsAction
             ->where('type', RegisterEntryTypeEnum::LOAD->value)
             ->orderBy('id')
             ->pluck('id')
+<<<<<<< HEAD
             ->map(static fn (mixed $id): int => SafeIntCastAction::cast($id))
+=======
+            ->map(static fn (mixed $id): int => (int) $id)
+>>>>>>> laraxot/dev
             ->values()
             ->all();
 

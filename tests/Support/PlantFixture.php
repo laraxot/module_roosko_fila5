@@ -141,13 +141,25 @@ final class PlantFixture
         return $fixture;
     }
 
+<<<<<<< HEAD
     public function fir(EwcCode $ewc, float $quantityKg = 2000.0, bool $digital = false): Fir
+=======
+    /**
+     * @param  OperatorSite|null  $producerSite  cantiere di produzione: il produttore diventa il suo soggetto
+     */
+    public function fir(EwcCode $ewc, float $quantityKg = 2000.0, bool $digital = false, ?OperatorSite $producerSite = null): Fir
+>>>>>>> laraxot/dev
     {
         return Fir::factory()->create([
             'number' => 'FIR-'.Str::upper(Str::random(8)),
             'is_digital' => $digital,
             'status' => 'in_transit',
+<<<<<<< HEAD
             'producer_operator_id' => $this->producer->id,
+=======
+            'producer_operator_id' => $producerSite?->operator_id ?? $this->producer->id,
+            'producer_site_id' => $producerSite?->id,
+>>>>>>> laraxot/dev
             'recipient_operator_id' => $this->plantOperator->id,
             'recipient_site_id' => $this->plant->id,
             'ewc_code_id' => $ewc->id,
@@ -166,10 +178,17 @@ final class PlantFixture
      * @param  list<float>  $unitsKg
      * @return array{delivery: Delivery, units: list<StockUnit>, fir: Fir}
      */
+<<<<<<< HEAD
     public function receiveAndAccept(EwcCode $ewc, array $unitsKg = [1000.0, 1000.0], bool $digital = false): array
     {
         $totalKg = array_sum($unitsKg);
         $fir = $this->fir($ewc, $totalKg, $digital);
+=======
+    public function receiveAndAccept(EwcCode $ewc, array $unitsKg = [1000.0, 1000.0], bool $digital = false, ?OperatorSite $producerSite = null): array
+    {
+        $totalKg = array_sum($unitsKg);
+        $fir = $this->fir($ewc, $totalKg, $digital, $producerSite);
+>>>>>>> laraxot/dev
 
         $delivery = app(ReceiveDeliveryAction::class)->execute($fir, $this->plant, $this->warehouse, $totalKg + 14000.0);
         $delivery = app(WeighDeliveryAction::class)->execute($delivery, 14000.0);

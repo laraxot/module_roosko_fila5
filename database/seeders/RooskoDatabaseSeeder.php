@@ -19,6 +19,10 @@ class RooskoDatabaseSeeder extends Seeder
     {
         $this->call([
             AreaWasteRuleSeeder::class,
+<<<<<<< HEAD
+=======
+            CustomerRoleSeeder::class,
+>>>>>>> laraxot/dev
         ]);
     }
 }
