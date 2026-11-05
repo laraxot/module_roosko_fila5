@@ -20,15 +20,15 @@ use Modules\Roosko\Actions\ResolveScannedCodeAction;
 use Modules\Roosko\Actions\ResolveWasteLotAction;
 use Modules\Roosko\Actions\StartTreatmentAction;
 use Modules\Roosko\Actions\StoreLotAction;
+use Modules\Roosko\Enums\ShipmentStatusEnum;
 use Modules\Roosko\Models\Shipment;
 use Modules\Roosko\Models\WasteLot;
-use Modules\Roosko\Enums\ShipmentStatusEnum;
-use Modules\Waste\Enums\WasteOperationEnum;
-use Modules\Waste\Models\EwcCode;
 use Modules\Warehouse\Actions\AdjustStockUnitWeightAction;
 use Modules\Warehouse\Enums\StockUnitStatusEnum;
 use Modules\Warehouse\Models\Location;
 use Modules\Warehouse\Models\StockUnit;
+use Modules\Waste\Enums\WasteOperationEnum;
+use Modules\Waste\Models\EwcCode;
 use Modules\Weighing\Exceptions\WeighingException;
 use Modules\Xot\Actions\Cast\SafeFloatCastAction;
 use Modules\Xot\Actions\Cast\SafeIntCastAction;
@@ -173,11 +173,14 @@ class OperatorScanPage extends XotBasePage
      */
     public function locationUnits(): Collection
     {
-        return StockUnit::query()
+        /** @var Collection<int, StockUnit> $units */
+        $units = StockUnit::query()
             ->where('location_id', $this->locationId ?? 0)
             ->whereIn('status', GetLotStockKgAction::occupyingStatuses())
             ->orderBy('code')
             ->get();
+
+        return $units;
     }
 
     public function ewcLabel(?WasteLot $lot): ?string
@@ -226,7 +229,7 @@ class OperatorScanPage extends XotBasePage
             ->schema([
                 'shipment_id' => Select::make('shipment_id')
                     ->options(fn (): array => Shipment::query()
-                        ->where('warehouse_id', $this->unit()?->warehouse_id ?? 0)
+                        ->where('warehouse_id', $this->unit()->warehouse_id ?? 0)
                         ->whereIn('status', [ShipmentStatusEnum::DRAFT->value, ShipmentStatusEnum::LOADING->value, ShipmentStatusEnum::READY->value])
                         ->orderByDesc('id')
                         ->pluck('code', 'id')

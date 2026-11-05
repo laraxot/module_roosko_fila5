@@ -8,6 +8,7 @@ use Filament\Panel;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Foundation\Vite;
 use Modules\Roosko\Filament\Pages\OperatorScanPage;
+use Modules\Xot\Datas\XotData;
 use Modules\Xot\Providers\Filament\XotBasePanelProvider;
 use Override;
 
@@ -25,7 +26,11 @@ class AdminPanelProvider extends XotBasePanelProvider
     #[Override]
     public function panel(Panel $panel): Panel
     {
-        return parent::panel($panel)
+        $panel = parent::panel($panel);
+        $tenant_class = XotData::make()->getTenantClass();
+        $panel->tenant($tenant_class, slugAttribute: 'slug');
+
+        return $panel
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 static fn (): string => view('roosko::filament.pages.partials.pwa-head', [

@@ -5,38 +5,14 @@ declare(strict_types=1);
 namespace Modules\Roosko\Datas;
 
 use Modules\Processing\Enums\OutputKindEnum;
-<<<<<<< .merge_file_Idf6B6
-<<<<<<< HEAD
-<<<<<<< HEAD
 use Modules\Roosko\Actions\CastHazardPropertiesAction;
-=======
->>>>>>> laraxot/dev
-=======
-use Modules\Roosko\Actions\CastHazardPropertiesAction;
->>>>>>> laraxot/dev
-=======
-use Modules\Roosko\Actions\CastHazardPropertiesAction;
->>>>>>> .merge_file_BJj2ge
 use Modules\Roosko\Enums\LotClassificationEnum;
 use Modules\Roosko\Enums\LotDestinationEnum;
+use Modules\Warehouse\Enums\ContainerTypeEnum;
 use Modules\Waste\Enums\HazardPropertyEnum;
 use Modules\Waste\Enums\PhysicalStateEnum;
-use Modules\Warehouse\Enums\ContainerTypeEnum;
-<<<<<<< .merge_file_Idf6B6
-<<<<<<< HEAD
-<<<<<<< HEAD
 use Modules\Xot\Actions\Cast\SafeFloatCastAction;
 use Modules\Xot\Actions\Cast\SafeIntCastAction;
-=======
->>>>>>> laraxot/dev
-=======
-use Modules\Xot\Actions\Cast\SafeFloatCastAction;
-use Modules\Xot\Actions\Cast\SafeIntCastAction;
->>>>>>> laraxot/dev
-=======
-use Modules\Xot\Actions\Cast\SafeFloatCastAction;
-use Modules\Xot\Actions\Cast\SafeIntCastAction;
->>>>>>> .merge_file_BJj2ge
 use Spatie\LaravelData\Data;
 
 /**
@@ -60,13 +36,6 @@ class TreatmentOutputData extends Data
         public readonly ?int $locationId = null,
         public readonly ?string $eowBatchCode = null,
     ) {}
-<<<<<<< .merge_file_Idf6B6
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_BJj2ge
 
     /**
      * Dallo stato del form "Registra prodotto" (chiavi snake_case; enum come istanze o valori).
@@ -110,12 +79,4 @@ class TreatmentOutputData extends Data
 
         return $enum::from(\is_string($value) ? $value : '');
     }
-<<<<<<< .merge_file_Idf6B6
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_BJj2ge
 }

@@ -6,14 +6,16 @@ namespace Modules\Roosko\Filament\Actions;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Modules\Roosko\Actions\ReceiveDeliveryAction;
 use Modules\Roosko\Filament\Actions\Concerns\NotifiesDomainErrors;
 use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
 use Modules\Roosko\Filament\Resources\DeliveryResource;
 use Modules\Roosko\Models\Delivery;
+use Modules\Warehouse\Models\Warehouse;
 use Modules\Waste\Models\Fir;
 use Modules\Waste\Models\OperatorSite;
-use Modules\Warehouse\Models\Warehouse;
 use Modules\Weighing\Models\Scale;
 use Modules\Xot\Actions\Cast\SafeFloatCastAction;
 use Modules\Xot\Actions\Cast\SafeIntCastAction;
@@ -59,7 +61,12 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
                     ->step(0.001)
                     ->suffix('kg'),
                 'scale_id' => Select::make('scale_id')
-                    ->options(static fn (): array => Scale::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all()),
+                    ->options(static function (): array {
+                        /** @var Builder<Scale> $query */
+                        $query = Scale::query();
+
+                        return $query->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
+                    }),
             ])
             ->action(function (array $data): void {
                 $delivery = null;
@@ -67,12 +74,18 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
                     static function () use ($data, &$delivery): void {
                         $scaleId = $data['scale_id'] ?? null;
                         $gross = $data['gross_kg'] ?? null;
+                        $scale = null;
+                        if ($scaleId !== null && $scaleId !== '') {
+                            /** @var Builder<Scale> $scaleQuery */
+                            $scaleQuery = Scale::query();
+                            $scale = $scaleQuery->findOrFail(SafeIntCastAction::cast($scaleId));
+                        }
                         $delivery = app(ReceiveDeliveryAction::class)->execute(
                             Fir::query()->findOrFail(SafeIntCastAction::cast($data['fir_id'] ?? null)),
                             OperatorSite::query()->findOrFail(SafeIntCastAction::cast($data['plant_site_id'] ?? null)),
                             Warehouse::query()->findOrFail(SafeIntCastAction::cast($data['warehouse_id'] ?? null)),
                             $gross === null || $gross === '' ? null : SafeFloatCastAction::cast($gross),
-                            $scaleId === null || $scaleId === '' ? null : Scale::query()->findOrFail(SafeIntCastAction::cast($scaleId)),
+                            $scale,
                         );
                     },
                     static::transAction('success'),
@@ -93,11 +106,14 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
     {
         $received = Delivery::query()->where('status', '!=', 'rejected')->pluck('fir_id')->all();
 
-        return Fir::query()
+        /** @var Collection<int, Fir> $firs */
+        $firs = Fir::query()
             ->whereNotIn('id', $received)
             ->orderByDesc('id')
             ->limit(200)
-            ->get()
+            ->get();
+
+        return $firs
             ->mapWithKeys(static fn (Fir $fir): array => [$fir->id => (string) ($fir->number ?? '#'.$fir->id)])
             ->all();
     }

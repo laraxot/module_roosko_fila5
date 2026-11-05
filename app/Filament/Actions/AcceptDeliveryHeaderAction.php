@@ -17,8 +17,8 @@ use Modules\Roosko\Enums\DeliveryStatusEnum;
 use Modules\Roosko\Filament\Actions\Concerns\NotifiesDomainErrors;
 use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
 use Modules\Roosko\Models\Delivery;
-use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Warehouse\Enums\ContainerTypeEnum;
+use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Weighing\Models\Weighing;
 use Modules\Xot\Filament\Actions\XotBaseAction;
 
@@ -78,8 +78,10 @@ class AcceptDeliveryHeaderAction extends XotBaseAction
                     ->reorderable(false),
             ])
             ->action(function (array $data, Delivery $record): void {
+                /** @var array<string, mixed> $formData */
+                $formData = $data;
                 $this->runDomainAction(
-                    static fn () => app(AcceptDeliveryAction::class)->execute($record, DeliveryAcceptanceData::fromFormState($data)),
+                    static fn () => app(AcceptDeliveryAction::class)->execute($record, DeliveryAcceptanceData::fromFormState($formData)),
                     static::transAction('success', ['code' => $record->code]),
                 );
             })

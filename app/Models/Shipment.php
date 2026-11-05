@@ -13,11 +13,11 @@ use Illuminate\Support\Carbon;
 use Modules\Roosko\Database\Factories\ShipmentFactory;
 use Modules\Roosko\Enums\ShipmentDocumentEnum;
 use Modules\Roosko\Enums\ShipmentStatusEnum;
+use Modules\Warehouse\Models\Warehouse;
 use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Waste\Models\Fir;
 use Modules\Waste\Models\Operator;
 use Modules\Waste\Models\OperatorSite;
-use Modules\Warehouse\Models\Warehouse;
 use Modules\Weighing\Models\Weighing;
 
 /**
@@ -124,7 +124,9 @@ class Shipment extends BaseModel
 
     public function totalKg(): float
     {
-        return round((float) $this->items()->sum('quantity_kg'), 3);
+        $sum = $this->items()->sum('quantity_kg');
+
+        return round(is_numeric($sum) ? (float) $sum : 0.0, 3);
     }
 
     /**

@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Database\Eloquent\Collection;
 use Modules\Processing\Enums\OutputKindEnum;
 use Modules\Processing\Models\ProcessingOrder;
 use Modules\Roosko\Actions\GetLocationOptionsAction;
@@ -18,12 +19,12 @@ use Modules\Roosko\Enums\LotClassificationEnum;
 use Modules\Roosko\Enums\LotDestinationEnum;
 use Modules\Roosko\Filament\Actions\Concerns\NotifiesDomainErrors;
 use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
-use Modules\Waste\Enums\HazardPropertyEnum;
-use Modules\Waste\Enums\PhysicalStateEnum;
-use Modules\Waste\Models\EwcCode;
 use Modules\Warehouse\Enums\ContainerTypeEnum;
 use Modules\Warehouse\Models\StockUnit;
 use Modules\Warehouse\Models\Warehouse;
+use Modules\Waste\Enums\HazardPropertyEnum;
+use Modules\Waste\Enums\PhysicalStateEnum;
+use Modules\Waste\Models\EwcCode;
 use Modules\Xot\Filament\Actions\XotBaseAction;
 
 /**
@@ -58,12 +59,17 @@ class RegisterTreatmentProductTableAction extends XotBaseAction
             ->schema(static fn (ProcessingOrder $record): array => [
                 'content' => Grid::make(2)->schema([
                     'ewc_code_id' => Select::make('ewc_code_id')
-                        ->options(static fn (): array => EwcCode::query()
-                            ->where('is_active', true)
-                            ->orderBy('code')
-                            ->get()
-                            ->mapWithKeys(static fn (EwcCode $ewc): array => [$ewc->id => $ewc->display_code.' – '.$ewc->description])
-                            ->all())
+                        ->options(static function (): array {
+                            /** @var Collection<int, EwcCode> $ewcCodes */
+                            $ewcCodes = EwcCode::query()
+                                ->where('is_active', true)
+                                ->orderBy('code')
+                                ->get();
+
+                            return $ewcCodes
+                                ->mapWithKeys(static fn (EwcCode $ewc): array => [$ewc->id => $ewc->display_code.' – '.$ewc->description])
+                                ->all();
+                        })
                         ->searchable()
                         ->live()
                         ->required(),
@@ -96,8 +102,10 @@ class RegisterTreatmentProductTableAction extends XotBaseAction
                 ]),
             ])
             ->action(function (array $data, ProcessingOrder $record): void {
+                /** @var array<string, mixed> $formData */
+                $formData = $data;
                 $this->runDomainAction(
-                    static fn (): StockUnit => app(RegisterTreatmentOutputAction::class)->execute($record, TreatmentOutputData::fromFormState($data)),
+                    static fn (): StockUnit => app(RegisterTreatmentOutputAction::class)->execute($record, TreatmentOutputData::fromFormState($formData)),
                     static fn (StockUnit $unit): string => static::transAction('success', ['code' => $unit->code, 'order' => $record->code]),
                 );
             })

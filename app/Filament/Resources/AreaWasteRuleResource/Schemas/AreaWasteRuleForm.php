@@ -8,12 +8,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
+use Illuminate\Support\Collection;
+use Modules\Warehouse\Models\Area;
+use Modules\Warehouse\Models\Warehouse;
 use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Waste\Models\AuthorizedWaste;
 use Modules\Waste\Models\EwcCode;
 use Modules\Waste\Models\PlantAuthorization;
-use Modules\Warehouse\Models\Area;
-use Modules\Warehouse\Models\Warehouse;
 use Modules\Xot\Filament\Resources\Schemas\XotBaseResourceForm;
 
 class AreaWasteRuleForm extends XotBaseResourceForm
@@ -56,10 +57,15 @@ class AreaWasteRuleForm extends XotBaseResourceForm
      */
     private static function areaOptions(): array
     {
+        /** @var Collection<int, string> $warehouses */
         $warehouses = Warehouse::query()->pluck('code', 'id');
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Area> $areas */
+        $areas = Area::query()->where('is_active', true)->orderBy('warehouse_id')->orderBy('code')->get();
+
         $options = [];
-        foreach (Area::query()->where('is_active', true)->orderBy('warehouse_id')->orderBy('code')->get() as $area) {
-            $options[$area->id] = ($warehouses[$area->warehouse_id] ?? '?').' / '.$area->code.' — '.$area->name;
+        foreach ($areas as $area) {
+            $options[$area->id] = ($warehouses->get($area->warehouse_id) ?? '?').' / '.$area->code.' — '.$area->name;
         }
 
         return $options;
@@ -72,15 +78,20 @@ class AreaWasteRuleForm extends XotBaseResourceForm
      */
     private static function authorizedWasteOptions(): array
     {
+        /** @var Collection<int, string> $authorizations */
         $authorizations = PlantAuthorization::query()->where('is_active', true)->pluck('number', 'id');
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, AuthorizedWaste> $authorized */
         $authorized = AuthorizedWaste::query()->whereIn('plant_authorization_id', $authorizations->keys()->all())->get();
+
+        /** @var Collection<int, EwcCode> $ewc */
         $ewc = EwcCode::query()->whereIn('id', $authorized->pluck('ewc_code_id')->all())->get()->keyBy('id');
 
         $options = [];
         foreach ($authorized as $item) {
             $code = $ewc->get($item->ewc_code_id);
             $options[$item->id] = ($code instanceof EwcCode ? $code->code.($code->is_hazardous ? '*' : '') : '?')
-                .' — '.($authorizations[$item->plant_authorization_id] ?? '');
+                .' — '.($authorizations->get($item->plant_authorization_id) ?? '');
         }
 
         return $options;

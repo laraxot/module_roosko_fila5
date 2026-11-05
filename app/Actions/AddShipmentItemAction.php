@@ -12,9 +12,9 @@ use Modules\Roosko\Exceptions\ShipmentException;
 use Modules\Roosko\Models\Shipment;
 use Modules\Roosko\Models\ShipmentItem;
 use Modules\Roosko\Models\WasteLot;
-use Modules\Waste\Models\EwcCode;
 use Modules\Warehouse\Enums\StockUnitStatusEnum;
 use Modules\Warehouse\Models\StockUnit;
+use Modules\Waste\Models\EwcCode;
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -64,14 +64,11 @@ class AddShipmentItemAction
 
     private function assertNotLoadedElsewhere(StockUnit $unit): void
     {
-        $openShipmentIds = Shipment::query()
-            ->whereNotIn('status', [ShipmentStatusEnum::CANCELLED->value])
-            ->pluck('id')
-            ->all();
-
         $existing = ShipmentItem::query()
             ->where('stock_unit_id', $unit->id)
-            ->whereIn('shipment_id', $openShipmentIds)
+            ->whereHas('shipment', static function ($query): void {
+                $query->whereNotIn('status', [ShipmentStatusEnum::CANCELLED->value]);
+            })
             ->first();
 
         if ($existing instanceof ShipmentItem) {
