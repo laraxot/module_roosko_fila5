@@ -3,14 +3,7 @@
 declare(strict_types=1);
 
 return [
-<<<<<<< .merge_file_l65AhV
-<<<<<<< HEAD
-=======
     'navigation_sort' => 1,
->>>>>>> laraxot/dev
-=======
-    'navigation_sort' => 1,
->>>>>>> .merge_file_Rt9AiZ
     'name' => 'Roosko',
     'description' => 'Gestione impianto di trattamento e cernita rifiuti',
     'icon' => 'heroicon-o-truck',
