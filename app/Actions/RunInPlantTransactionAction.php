@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Roosko\Actions;
 
 use Closure;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use Modules\Labeling\Models\Identifier;
 use Modules\Processing\Models\ProcessingOrder;
@@ -15,14 +16,19 @@ use Modules\Weighing\Models\Weighing;
 use Spatie\QueueableAction\QueueableAction;
 
 /**
- * Transazione annidata sulle connessioni dei moduli toccati dall'orchestrazione
+ * Transazione sulle connessioni dei moduli toccati dall'orchestrazione
  * (Roosko, Warehouse, Labeling, Weighing, Processing, Waste).
  *
- * Una connessione per modulo: si apre una transazione per ogni connessione DISTINTA, una
- * dentro l'altra. Con lo stesso database (caso tipico) le interne diventano savepoint; con
- * database diversi l'atomicita' e' best-effort (niente 2PC): un errore prima del commit
- * annulla tutto, un errore durante i commit esterni no. RENTRI e stampa non entrano:
- * si accodano dopo il commit.
+ * Ogni modulo ha una connessione con nome proprio. Il modulo Tenant registra i nomi clonati
+ * dalla connessione di default come alias della STESSA istanza `Connection` (DB::extend):
+ * quando i moduli condividono il database c'e' una sola istanza, quindi una sola transazione
+ * vera e le eventuali interne sono savepoint. L'atomicita' dipende da quell'alias, non dai
+ * nomi: per questo le connessioni si deduplicano per istanza (spl_object_id), non per nome.
+ *
+ * Con database davvero separati (istanze diverse) si apre una transazione per istanza, una
+ * dentro l'altra: un errore prima del commit annulla tutto, un errore durante i commit esterni
+ * no (niente 2PC, atomicita' best-effort; la piu' interna, Waste, committa per prima).
+ * RENTRI e stampa non entrano: si accodano dopo il commit.
  */
 class RunInPlantTransactionAction
 {
@@ -36,14 +42,16 @@ class RunInPlantTransactionAction
      */
     public function execute(Closure $callback): mixed
     {
-        $connections = array_values(array_unique(array_map(
-            static fn (string $modelClass): string => (new $modelClass)->getConnectionName() ?? DB::getDefaultConnection(),
-            [Delivery::class, StockUnit::class, Identifier::class, Weighing::class, ProcessingOrder::class, RegisterEntry::class],
-        )));
+        /** @var array<int, Connection> $connections istanza => connessione, nell'ordine dei modelli */
+        $connections = [];
+        foreach ([Delivery::class, StockUnit::class, Identifier::class, Weighing::class, ProcessingOrder::class, RegisterEntry::class] as $modelClass) {
+            $connection = DB::connection((new $modelClass)->getConnectionName());
+            $connections[spl_object_id($connection)] ??= $connection;
+        }
 
         $wrapped = array_reduce(
-            array_reverse($connections),
-            static fn (Closure $inner, string $connection): Closure => static fn (): mixed => DB::connection($connection)->transaction($inner),
+            array_reverse(array_values($connections)),
+            static fn (Closure $inner, Connection $connection): Closure => static fn (): mixed => $connection->transaction($inner),
             $callback,
         );
 
