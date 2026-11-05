@@ -15,6 +15,10 @@ use Spatie\QueueableAction\QueueableAction;
  * Scritture di carico che hanno originato un lotto (per `load_entry_ids` degli scarichi):
  * - lotto conferito: il carico del conferimento (reference = Delivery);
  * - lotto prodotto da trattamento: il carico di nuova produzione (reference = WasteLot).
+ *
+ * Solo le scritture effettive (RegisterEntry::effective()): una rettifica eredita la `reference`
+ * dell'originale, e Waste rifiuta come carico di riferimento una scrittura gia' rettificata.
+ * Senza il filtro, dopo la rettifica di un carico ogni scarico dei lotti collegati fallirebbe.
  */
 class GetLotLoadEntryIdsAction
 {
@@ -31,6 +35,7 @@ class GetLotLoadEntryIdsAction
 
         /** @var list<int> $ids */
         $ids = RegisterEntry::query()
+            ->effective()
             ->where('reference_type', $reference[0])
             ->where('reference_id', $reference[1])
             ->where('type', RegisterEntryTypeEnum::LOAD->value)
