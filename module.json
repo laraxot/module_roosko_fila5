@@ -1,0 +1,18 @@
+{
+    "name": "Roosko",
+    "alias": "roosko",
+    "description": "Prodotto Roosko: conferimenti con FIR e pesata, lotti di rifiuto in unità etichettate, stoccaggio nelle aree autorizzate, trattamento, uscite, registro e RENTRI, UI operatore di piazzale",
+    "keywords": ["roosko", "rifiuti", "impianto", "fir", "rentri", "magazzino", "tracciabilita"],
+    "priority": 0,
+    "active": 1,
+    "order": 70,
+    "providers": [
+        "Modules\\Roosko\\Providers\\RooskoServiceProvider",
+        "Modules\\Roosko\\Providers\\Filament\\AdminPanelProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": ["Xot", "User", "Geo", "Labeling", "Weighing", "Warehouse", "Processing", "Waste", "Rentri"],
+    "minimumCoreVersion": "10.0",
+    "phpVersion": "^8.3"
+}

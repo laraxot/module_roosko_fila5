@@ -1,0 +1,20 @@
+{
+    "name": "Roosko — Operatore",
+    "short_name": "Roosko",
+    "description": "Scansione e movimentazione delle unità di rifiuto in piazzale",
+    "lang": "it",
+    "start_url": "/roosko/admin/operator",
+    "scope": "/roosko/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#ffffff",
+    "theme_color": "#0f766e",
+    "icons": [
+        {
+            "src": "/assets/roosko/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

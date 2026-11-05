@@ -1,0 +1,64 @@
+{
+    "name": "laraxot/module_roosko_fila5",
+    "description": "Roosko: orchestrazione di prodotto per impianti di trattamento e cernita rifiuti (conferimenti, lotti, stoccaggio autorizzato, trattamento, uscite, registro, RENTRI, UI operatore mobile).",
+    "keywords": ["laraxot", "laravel", "filament", "module_roosko", "waste", "rentri", "fir", "warehouse", "traceability"],
+    "homepage": "https://github.com/laraxot/module_roosko_fila5",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Sottana",
+            "email": "marco.sottana@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Roosko\\Providers\\RooskoServiceProvider",
+                "Modules\\Roosko\\Providers\\Filament\\AdminPanelProvider"
+            ],
+            "aliases": []
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Roosko\\": "app/",
+            "Modules\\Roosko\\Database\\Factories\\": "database/factories/",
+            "Modules\\Roosko\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Roosko\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.3"
+    },
+    "require-dev": {},
+    "repositories_comment": [
+        {"type": "path", "url": "../Xot"},
+        {"type": "path", "url": "../Labeling"},
+        {"type": "path", "url": "../Weighing"},
+        {"type": "path", "url": "../Warehouse"},
+        {"type": "path", "url": "../Processing"},
+        {"type": "path", "url": "../Waste"},
+        {"type": "path", "url": "../Rentri"}
+    ],
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "./vendor/bin/pest --no-coverage",
+        "format": "vendor/bin/pint",
+        "lint": [
+            "@php vendor/bin/pint",
+            "@php vendor/bin/phpstan analyse"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
