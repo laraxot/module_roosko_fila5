@@ -184,4 +184,23 @@ describe('kg conferiti per cantiere', function (): void {
             ->and($kg->execute([$siteA, $siteB])[$siteB])->toBe(1200.0)
             ->and($kg->execute([]))->toBe([]);
     });
+
+    test('piu\' conferimenti dello stesso cantiere si sommano', function (): void {
+        $siteA = $this->a['site']->id;
+        $this->plant->receiveAndAccept($this->plant->plastics, [300.0], producerSite: $this->a['site']);
+
+        expect(app(GetCustomerSiteDeliveredKgAction::class)->execute([$siteA]))->toBe([$siteA => 1500.0]);
+    });
+
+    test('un FIR col cantiere di A ma prodotto da B non entra nei kg di A', function (): void {
+        $siteA = $this->a['site']->id;
+        $flow = $this->plant->receiveAndAccept($this->plant->plastics, [400.0], producerSite: $this->a['site']);
+        Fir::query()->whereKey($flow['fir']->id)->update(['producer_operator_id' => $this->b['operator']->id]);
+
+        Filament::setTenant($this->a['tenant'], isQuiet: true);
+
+        // stesso perimetro dell'elenco dei conferimenti del cliente A
+        expect(app(GetCustomerSiteDeliveredKgAction::class)->execute([$siteA]))->toBe([$siteA => 1200.0])
+            ->and(visibleIds(CustomerDeliveryResource::class))->not->toContain($flow['delivery']->id);
+    });
 });
