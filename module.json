@@ -8,12 +8,8 @@
     "order": 70,
     "providers": [
         "Modules\\Roosko\\Providers\\RooskoServiceProvider",
-<<<<<<< HEAD
-        "Modules\\Roosko\\Providers\\Filament\\AdminPanelProvider"
-=======
         "Modules\\Roosko\\Providers\\Filament\\AdminPanelProvider",
         "Modules\\Roosko\\Providers\\Filament\\CustomerPanelProvider"
->>>>>>> laraxot/dev
     ],
     "aliases": {},
     "files": [],

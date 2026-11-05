@@ -50,18 +50,7 @@ recupero, smaltimento, bonifica), registro di carico/scarico, invii RENTRI e UI 
 | `Shipment` | `shipments` | uscita `USC-{anno}-{progr}`; documento `ShipmentDocumentEnum`; `operation` R/D a destino |
 | `ShipmentItem` | `shipment_items` | unità caricata, snapshot dei kg |
 | `AreaWasteRule` | `area_waste_rules` | codice autorizzato (AuthorizedWaste) ammesso in un'area (R13/D15), limite d'area |
-<<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 | `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
->>>>>>> laraxot/dev
-=======
-| `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
->>>>>>> laraxot/dev
-=======
-| `Profile` | `profiles` | profilo utente del progetto: Xot lo usa quando `xra.main_module` è Roosko |
->>>>>>> .merge_file_AyBssG
 
 Enum: `DeliveryStatusEnum`, `ShipmentStatusEnum` (con `canTransitionTo()`), `LotClassificationEnum`,
 `LotDestinationEnum`, `ShipmentDocumentEnum`. Etichette/colori/icone in `lang/{it,en}/*_enum.php`.
@@ -87,32 +76,12 @@ Supporto: `RunInPlantTransactionAction`, `GenerateDocumentCodeAction` (progressi
 `lockForUpdate`), `ResolveWasteLotAction`, `ResolvePlantSiteAction` (magazzino → sito tramite le regole
 d'area), `ResolvePlantRegisterAction`, `FindRentriCredentialAction`, `SubmitDigitalFirAcceptanceAction`,
 `QueueUnitLabelAction`, `GetLotLoadEntryIdsAction`, `GetLotStockKgAction`, `TraceLotOriginAction`,
-<<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 `ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
-=======
-`ResolveScannedCodeAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
->>>>>>> laraxot/dev
-=======
-`ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
-`ResolveScannedCodeAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
->>>>>>> laraxot/dev
-=======
-`ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
->>>>>>> laraxot/dev
-=======
-`ResolveScannedCodeAction`, `ResolveOrderWarehouseAction`, `GetLocationOptionsAction`, `CastHazardPropertiesAction`, `GetQueueNameAction`.
->>>>>>> .merge_file_AyBssG
 
-<<<<<<< HEAD
-=======
 Area clienti: `GetCustomerOperatorIdsAction` (soggetti del cliente, base di ogni scope),
 `ResolveCustomerSiteOperatorAction` (soggetto del cantiere creato dal cliente),
 `GetCustomerSiteDeliveredKgAction` (kg accettati per cantiere, anche da una data).
 
->>>>>>> laraxot/dev
 ## Flussi
 
 1. **Conferimento** — `ReceiveDeliveryAction` (pesata inbound aperta col lordo, FIR → `delivered`) →
@@ -148,21 +117,6 @@ resource `DeliveryResource` (registra arrivo, pesa tara, accetta con repeater de
 `WasteLotResource` (view con unità, posizione, tracciabilità a monte), `ShipmentResource` (righe con
 carico da scansione, spedisci), `AreaWasteRuleResource`.
 
-<<<<<<< HEAD
-<<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_AyBssG
-=======
-<<<<<<< .merge_file_O6Sfpp
-<<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-=======
->>>>>>> .merge_file_AyBssG
-=======
 ### Area clienti (`roosko::customer`, `/roosko/customer/{cliente}`)
 
 Pannello separato (`CustomerPanelProvider`, titolo «Roosko — Area clienti») per le imprese che
@@ -206,39 +160,6 @@ diverse: due query, niente join).
 L'utente entra da `/roosko/customer/login` e arriva su `/roosko/customer/{slug}`. Senza ruolo o senza
 clienti non entra; un cliente di cui non è membro risponde 404.
 
->>>>>>> .merge_file_DDgA5i
->>>>>>> laraxot/dev
-### Lavorazioni in corso (`TreatmentPage`, `/roosko/admin/treatments`)
-
-Gruppo «Impianto». Tabella degli ordini di Processing `in_progress` (avviati con «Avvia trattamento»
-dalla UI operatore): ordine, macchina, operazione, kg in input, kg di output già registrati, avvio.
-Per ogni riga:
-
-- **Registra prodotto** (`RegisterTreatmentProductTableAction` → `RegisterTreatmentOutputAction`):
-  codice EER, stato fisico, classi HP (solo per EER pericoloso), classificazione, destino, codice
-  lotto EoW (solo per End of Waste), tipo output (default prodotto), contenitore, peso netto, tara,
-  posizione facoltativa (posizioni del magazzino degli input, `ResolveOrderWarehouseAction`). Crea
-  lotto, unità con QR ed etichetta e, se il prodotto è ancora un rifiuto, il carico `new_production`.
-  Lo stato del form diventa `TreatmentOutputData::fromFormState()`. Da preferire al bottone
-  «Registra output» di Processing, che crea l'unità senza lotto (niente EER né registro).
-- **Completa trattamento** (`CompleteTreatmentTableAction` → `CompleteTreatmentAction`): conferma
-  con «Forza la chiusura»; se la perdita supera `processing.max_loss_pct` il modale resta aperto con
-  l'errore di dominio.
-
-Testi in `lang/{it,en}/treatment.php` (pagina, colonne, bottoni), `register_treatment_product_table.php`
-e `complete_treatment_table.php` (modali e campi).
-
-<<<<<<< .merge_file_BfF0cD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_AyBssG
 ### UI operatore (`OperatorScanPage`, `/roosko/admin/operator`)
 
 - Campo di scansione sempre a fuoco: i lettori in **keyboard wedge** digitano il codice e Invio.
@@ -285,12 +206,9 @@ aggiuntivo). npm: `qr-scanner`, `vite`, `laravel-vite-plugin`.
 - Etichette delle posizioni: il codice stampato da Labeling per una `Location` è `LOC-{magazzino}-{codice}`;
   la UI operatore la risolve tramite l'identificatore assegnato (consigliato assegnarlo a tutte le posizioni).
 - Ricalcolo dei limiti annui (`max_annual_kg`) nei widget (oggi solo il limite istantaneo).
-<<<<<<< HEAD
-=======
 
 ## Audit
 
 Manuale d'uso per ruolo: [manuale/README.md](manuale/README.md).
 
 Stato del progetto, rilievi con evidenze, backlog P0–P3 e roadmap: [audit/README.md](audit/README.md).
->>>>>>> laraxot/dev

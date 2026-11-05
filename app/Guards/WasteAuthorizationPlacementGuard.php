@@ -9,20 +9,12 @@ use Modules\Roosko\Actions\GetLotStockKgAction;
 use Modules\Roosko\Actions\ResolveWasteLotAction;
 use Modules\Roosko\Models\AreaWasteRule;
 use Modules\Roosko\Models\WasteLot;
-<<<<<<< HEAD
 use Modules\Warehouse\Contracts\PlacementGuardContract;
 use Modules\Warehouse\Models\Location;
 use Modules\Warehouse\Models\StockUnit;
 use Modules\Waste\Models\AuthorizedWaste;
 use Modules\Waste\Models\EwcCode;
 use Modules\Xot\Actions\Cast\SafeIntCastAction;
-=======
-use Modules\Waste\Models\AuthorizedWaste;
-use Modules\Waste\Models\EwcCode;
-use Modules\Warehouse\Contracts\PlacementGuardContract;
-use Modules\Warehouse\Models\Location;
-use Modules\Warehouse\Models\StockUnit;
->>>>>>> laraxot/dev
 
 /**
  * Un lotto di rifiuto si stocca solo dove l'autorizzazione lo consente.
@@ -53,10 +45,7 @@ class WasteAuthorizationPlacementGuard implements PlacementGuardContract
             return $this->reason('area_not_authorized', ['location' => $location->code]);
         }
 
-<<<<<<< HEAD
         /** @var \Illuminate\Support\Collection<array-key, AuthorizedWaste> $authorizedWastes */
-=======
->>>>>>> laraxot/dev
         $authorizedWastes = AuthorizedWaste::query()->whereIn('id', $rules->pluck('authorized_waste_id')->all())->get()->keyBy('id');
         $ewc = EwcCode::query()->findOrFail($lot->ewc_code_id);
 
@@ -85,13 +74,8 @@ class WasteAuthorizationPlacementGuard implements PlacementGuardContract
         $authorized = $authorizedWastes->get($rule->authorized_waste_id);
         $plantLimit = $authorized->max_storage_kg === null ? null : (float) $authorized->max_storage_kg;
         if ($plantLimit !== null) {
-<<<<<<< HEAD
             $plantAreaIds = array_values(AreaWasteRule::query()->where('authorized_waste_id', $authorized->id)->distinct()->pluck('area_id')
                 ->map(static fn (mixed $id): int => SafeIntCastAction::cast($id))->all());
-=======
-            $plantAreaIds = AreaWasteRule::query()->where('authorized_waste_id', $authorized->id)->distinct()->pluck('area_id')
-                ->map(static fn (mixed $id): int => (int) $id)->values()->all();
->>>>>>> laraxot/dev
             $plantKg = $stock->execute($lot->ewc_code_id, $plantAreaIds, $exceptUnitId);
             if ($plantKg + $unitKg > $plantLimit + 0.0005) {
                 return $this->reason('authorization_limit_exceeded', $this->limitReplace($ewc->code, $plantKg, $unitKg, $plantLimit));

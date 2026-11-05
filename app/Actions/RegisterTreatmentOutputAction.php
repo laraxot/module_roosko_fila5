@@ -8,42 +8,17 @@ use Carbon\CarbonImmutable;
 use Modules\Labeling\Actions\AssignIdentifierAction;
 use Modules\Labeling\Enums\IdentifierTypeEnum;
 use Modules\Processing\Actions\RegisterProcessingOutputAction;
-<<<<<<< HEAD
-=======
-<<<<<<< .merge_file_qhMcAf
-<<<<<<< HEAD
-use Modules\Processing\Models\ProcessingInput;
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_4IoINe
->>>>>>> laraxot/dev
 use Modules\Processing\Models\ProcessingOrder;
 use Modules\Roosko\Datas\TreatmentOutputData;
 use Modules\Roosko\Enums\LotClassificationEnum;
 use Modules\Roosko\Exceptions\LotException;
 use Modules\Roosko\Models\WasteLot;
-<<<<<<< HEAD
 use Modules\Warehouse\Datas\StockUnitData;
 use Modules\Warehouse\Models\StockUnit;
-=======
->>>>>>> laraxot/dev
 use Modules\Waste\Actions\PostRegisterEntryAction;
 use Modules\Waste\Datas\RegisterEntryData;
 use Modules\Waste\Enums\RegisterCauseEnum;
 use Modules\Waste\Enums\RegisterEntryTypeEnum;
-<<<<<<< HEAD
-=======
-use Modules\Warehouse\Datas\StockUnitData;
-use Modules\Warehouse\Models\StockUnit;
-<<<<<<< .merge_file_qhMcAf
-<<<<<<< HEAD
-use Modules\Warehouse\Models\Warehouse;
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_4IoINe
->>>>>>> laraxot/dev
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -52,20 +27,7 @@ use Spatie\QueueableAction\QueueableAction;
  * stampa etichetta. Se il prodotto e' ancora un rifiuto (es. scarto 19 12 12) scrive il carico
  * di nuova produzione sul registro; End of Waste e sottoprodotti non vanno sul registro rifiuti.
  *
-<<<<<<< HEAD
  * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
-=======
-<<<<<<< .merge_file_qhMcAf
-<<<<<<< HEAD
- * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
- * Il magazzino e' quello delle unita' in input dell'ordine.
-=======
- * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
->>>>>>> laraxot/dev
-=======
- * Il magazzino e' quello delle unita' in input dell'ordine (ResolveOrderWarehouseAction).
->>>>>>> .merge_file_4IoINe
->>>>>>> laraxot/dev
  */
 class RegisterTreatmentOutputAction
 {
@@ -77,20 +39,7 @@ class RegisterTreatmentOutputAction
             throw LotException::eowBatchCodeRequired();
         }
 
-<<<<<<< HEAD
         $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
-=======
-<<<<<<< .merge_file_qhMcAf
-<<<<<<< HEAD
-        $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
-        $warehouse = $this->orderWarehouse($order);
-=======
-        $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
->>>>>>> laraxot/dev
-=======
-        $warehouse = app(ResolveOrderWarehouseAction::class)->execute($order);
->>>>>>> .merge_file_4IoINe
->>>>>>> laraxot/dev
 
         $unit = app(RunInPlantTransactionAction::class)->execute(function () use ($order, $data, $warehouse): StockUnit {
             $lot = WasteLot::query()->create([
@@ -141,25 +90,4 @@ class RegisterTreatmentOutputAction
 
         return $unit;
     }
-<<<<<<< HEAD
-=======
-<<<<<<< .merge_file_qhMcAf
-<<<<<<< HEAD
-
-    private function orderWarehouse(ProcessingOrder $order): Warehouse
-    {
-        $input = ProcessingInput::query()->where('processing_order_id', $order->id)->orderBy('id')->first();
-        if (! $input instanceof ProcessingInput) {
-            throw LotException::orderWithoutInputs($order->code);
-        }
-
-        $unit = StockUnit::query()->withoutGlobalScopes()->findOrFail($input->stock_unit_id);
-
-        return Warehouse::query()->findOrFail($unit->warehouse_id);
-    }
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_4IoINe
->>>>>>> laraxot/dev
 }

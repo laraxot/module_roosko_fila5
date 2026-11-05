@@ -5,13 +5,8 @@ declare(strict_types=1);
 namespace Modules\Roosko\Filament\Actions\Concerns;
 
 use Closure;
-<<<<<<< HEAD
 use DomainException;
 use Filament\Notifications\Notification;
-=======
-use Filament\Notifications\Notification;
-use DomainException;
->>>>>>> laraxot/dev
 use InvalidArgumentException;
 use Modules\Weighing\Exceptions\WeighingException;
 
@@ -23,13 +18,6 @@ use Modules\Weighing\Exceptions\WeighingException;
 trait NotifiesDomainErrors
 {
     /**
-<<<<<<< HEAD
-=======
-<<<<<<< .merge_file_T0t0VD
-<<<<<<< HEAD
-=======
->>>>>>> .merge_file_gM43VW
->>>>>>> laraxot/dev
      * `$successTitle` puo' dipendere dal risultato della action (es. il codice dell'unita' creata).
      *
      * @template TResult
@@ -41,20 +29,6 @@ trait NotifiesDomainErrors
     {
         try {
             $result = $callback();
-<<<<<<< HEAD
-=======
-<<<<<<< .merge_file_T0t0VD
-     * @param  Closure(): mixed  $callback
-     */
-    protected function runDomainAction(Closure $callback, string $successTitle): void
-    {
-        try {
-            $callback();
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_gM43VW
->>>>>>> laraxot/dev
         } catch (DomainException|InvalidArgumentException|WeighingException $exception) {
             Notification::make()
                 ->danger()
@@ -63,13 +37,6 @@ trait NotifiesDomainErrors
                 ->send();
 
             $this->halt();
-<<<<<<< HEAD
-=======
-<<<<<<< .merge_file_T0t0VD
-<<<<<<< HEAD
-=======
->>>>>>> .merge_file_gM43VW
->>>>>>> laraxot/dev
 
             return;
         }
@@ -78,16 +45,5 @@ trait NotifiesDomainErrors
             ->success()
             ->title($successTitle instanceof Closure ? $successTitle($result) : $successTitle)
             ->send();
-<<<<<<< HEAD
-=======
-<<<<<<< .merge_file_T0t0VD
-        }
-
-        Notification::make()->success()->title($successTitle)->send();
-=======
->>>>>>> laraxot/dev
-=======
->>>>>>> .merge_file_gM43VW
->>>>>>> laraxot/dev
     }
 }

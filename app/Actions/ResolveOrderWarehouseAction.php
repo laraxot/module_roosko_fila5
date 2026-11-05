@@ -32,10 +32,7 @@ class ResolveOrderWarehouseAction
     /** Come execute(), ma null se l'ordine non ha ancora input (es. per le opzioni di una select). */
     public function find(ProcessingOrder $order): ?Warehouse
     {
-<<<<<<< HEAD
         /** @var ProcessingInput|null $input */
-=======
->>>>>>> laraxot/dev
         $input = ProcessingInput::query()->where('processing_order_id', $order->id)->orderBy('id')->first();
         if (! $input instanceof ProcessingInput) {
             return null;

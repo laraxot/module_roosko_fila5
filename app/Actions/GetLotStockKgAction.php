@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Actions;
 
-<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Builder;
-=======
->>>>>>> laraxot/dev
 use Modules\Roosko\Models\WasteLot;
 use Modules\Warehouse\Enums\StockUnitStatusEnum;
 use Modules\Warehouse\Models\Location;
@@ -41,7 +38,6 @@ class GetLotStockKgAction
 
         $locationIds = Location::query()->whereIn('area_id', $areaIds)->pluck('id')->all();
 
-<<<<<<< HEAD
         /** @var Builder<StockUnit> $query */
         $query = StockUnit::query()
             ->where('subject_type', (new WasteLot)->getMorphClass())
@@ -56,17 +52,6 @@ class GetLotStockKgAction
         $sum = $query->sum('net_weight_kg');
 
         return round(is_numeric($sum) ? (float) $sum : 0.0, 3);
-=======
-        $sum = StockUnit::query()
-            ->where('subject_type', (new WasteLot)->getMorphClass())
-            ->whereIn('subject_id', $lotIds)
-            ->whereIn('location_id', $locationIds)
-            ->whereIn('status', self::occupyingStatuses())
-            ->when($exceptUnitId !== null, static fn ($query) => $query->whereKeyNot($exceptUnitId))
-            ->sum('net_weight_kg');
-
-        return round((float) $sum, 3);
->>>>>>> laraxot/dev
     }
 
     /**

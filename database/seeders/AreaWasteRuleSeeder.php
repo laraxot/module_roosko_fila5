@@ -4,28 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Database\Seeders;
 
-<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
 use Modules\Roosko\Models\AreaWasteRule;
 use Modules\Warehouse\Enums\AreaTypeEnum;
 use Modules\Warehouse\Models\Area;
 use Modules\Warehouse\Models\Warehouse;
-=======
-use Illuminate\Database\Seeder;
-use Modules\Roosko\Models\AreaWasteRule;
->>>>>>> laraxot/dev
 use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Waste\Models\AuthorizedWaste;
 use Modules\Waste\Models\EwcCode;
 use Modules\Waste\Models\OperatorSite;
 use Modules\Waste\Models\PlantAuthorization;
-<<<<<<< HEAD
-=======
-use Modules\Warehouse\Enums\AreaTypeEnum;
-use Modules\Warehouse\Models\Area;
-use Modules\Warehouse\Models\Warehouse;
->>>>>>> laraxot/dev
 
 /**
  * Regole demo: i codici autorizzati dell'impianto (seeder Waste) mappati sulle aree del primo
@@ -50,11 +39,8 @@ class AreaWasteRuleSeeder extends Seeder
         }
 
         $authorizationIds = PlantAuthorization::query()->where('operator_site_id', $plant->id)->where('is_active', true)->pluck('id')->all();
-<<<<<<< HEAD
 
         /** @var Collection<int, AuthorizedWaste> $authorizedWastes */
-=======
->>>>>>> laraxot/dev
         $authorizedWastes = AuthorizedWaste::query()->whereIn('plant_authorization_id', $authorizationIds)->get();
 
         $storage = Area::query()->where('warehouse_id', $warehouse->id)->where('type', AreaTypeEnum::STORAGE->value)->get();

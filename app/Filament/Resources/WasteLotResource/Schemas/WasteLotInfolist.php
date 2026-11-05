@@ -12,17 +12,10 @@ use Filament\Schemas\Components\Section;
 use Modules\Roosko\Actions\TraceLotOriginAction;
 use Modules\Roosko\Models\Delivery;
 use Modules\Roosko\Models\WasteLot;
-<<<<<<< HEAD
 use Modules\Warehouse\Models\StockUnit;
 use Modules\Waste\Enums\HazardPropertyEnum;
 use Modules\Waste\Models\EwcCode;
 use Modules\Waste\Models\Fir;
-=======
-use Modules\Waste\Enums\HazardPropertyEnum;
-use Modules\Waste\Models\EwcCode;
-use Modules\Waste\Models\Fir;
-use Modules\Warehouse\Models\StockUnit;
->>>>>>> laraxot/dev
 use Modules\Xot\Filament\Resources\Schemas\XotBaseResourceInfolist;
 
 /**
@@ -98,16 +91,10 @@ class WasteLotInfolist extends XotBaseResourceInfolist
             return [];
         }
 
-<<<<<<< HEAD
-        return array_values(app(TraceLotOriginAction::class)->execute($unit)
-            ->map(static fn (array $row): string => self::originLine($row['unit'], $row['lot'], $row['delivery'], $row['fir'], $row['share']))
-            ->all());
-=======
         return app(TraceLotOriginAction::class)->execute($unit)
             ->map(static fn (array $row): string => self::originLine($row['unit'], $row['lot'], $row['delivery'], $row['fir'], $row['share']))
             ->values()
             ->all();
->>>>>>> laraxot/dev
     }
 
     private static function originLine(?StockUnit $unit, WasteLot $lot, ?Delivery $delivery, ?Fir $fir, ?float $share): string

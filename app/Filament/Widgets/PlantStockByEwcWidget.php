@@ -60,13 +60,9 @@ class PlantStockByEwcWidget extends XotBaseTableWidget
     private function rows(): array
     {
         $rows = [];
-<<<<<<< HEAD
         /** @var \Illuminate\Database\Eloquent\Collection<int, Warehouse> $warehouses */
         $warehouses = Warehouse::query()->where('is_active', true)->orderBy('code')->get();
         foreach ($warehouses as $warehouse) {
-=======
-        foreach (Warehouse::query()->where('is_active', true)->orderBy('code')->get() as $warehouse) {
->>>>>>> laraxot/dev
             /** @var Collection<int, StockSummaryRowData> $summary */
             $summary = app(GetPlantStockSummaryAction::class)->execute($warehouse);
             foreach ($summary as $row) {

@@ -40,11 +40,7 @@ class DeliveryInfolist extends XotBaseResourceInfolist
                     'gross_kg' => TextEntry::make('gross_kg')->state(static fn (Delivery $record): ?float => self::weight($record, 'gross_kg'))->numeric(3)->suffix(' kg'),
                     'tare_kg' => TextEntry::make('tare_kg')->state(static fn (Delivery $record): ?float => self::weight($record, 'tare_kg'))->numeric(3)->suffix(' kg'),
                     'net_kg' => TextEntry::make('net_kg')->state(static fn (Delivery $record): ?float => self::weight($record, 'net_kg'))->numeric(3)->suffix(' kg'),
-<<<<<<< HEAD
-                    'fir_quantity' => TextEntry::make('fir_quantity')->state(static fn (Delivery $record): ?string => self::fir($record)?->quantity),
-=======
                     'fir_quantity' => TextEntry::make('fir_quantity')->state(static fn (Delivery $record): ?string => self::fir($record)?->quantity === null ? null : (string) self::fir($record)?->quantity),
->>>>>>> laraxot/dev
                 ]),
             ]),
             'acceptance' => Section::make('acceptance')->schema([

@@ -15,11 +15,7 @@ use Modules\Xot\Models\XotBaseModel;
  */
 abstract class BaseModel extends XotBaseModel
 {
-<<<<<<< HEAD
     /** @var string */
-=======
-    /** @var string|null */
->>>>>>> laraxot/dev
     protected $connection = 'roosko';
 
     /**

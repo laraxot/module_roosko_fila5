@@ -8,19 +8,11 @@ use Illuminate\Support\Collection;
 use Modules\Roosko\Datas\StockSummaryRowData;
 use Modules\Roosko\Models\AreaWasteRule;
 use Modules\Roosko\Models\WasteLot;
-<<<<<<< HEAD
 use Modules\Warehouse\Models\Area;
 use Modules\Warehouse\Models\StockUnit;
 use Modules\Warehouse\Models\Warehouse;
 use Modules\Waste\Models\AuthorizedWaste;
 use Modules\Waste\Models\EwcCode;
-=======
-use Modules\Waste\Models\AuthorizedWaste;
-use Modules\Waste\Models\EwcCode;
-use Modules\Warehouse\Models\Area;
-use Modules\Warehouse\Models\StockUnit;
-use Modules\Warehouse\Models\Warehouse;
->>>>>>> laraxot/dev
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -43,11 +35,8 @@ class GetPlantStockSummaryAction
         $limitsByEwc = $this->limitsByEwc($warehouse);
 
         $ewcIds = array_values(array_unique([...array_keys($stockByEwc), ...array_keys($limitsByEwc)]));
-<<<<<<< HEAD
 
         /** @var \Illuminate\Database\Eloquent\Collection<int, EwcCode> $ewcCodes */
-=======
->>>>>>> laraxot/dev
         $ewcCodes = EwcCode::query()->whereIn('id', $ewcIds)->orderBy('code')->get();
 
         return $ewcCodes
@@ -69,10 +58,7 @@ class GetPlantStockSummaryAction
      */
     private function stockByEwc(Warehouse $warehouse): array
     {
-<<<<<<< HEAD
         /** @var \Illuminate\Database\Eloquent\Collection<int, StockUnit> $units */
-=======
->>>>>>> laraxot/dev
         $units = StockUnit::query()
             ->where('warehouse_id', $warehouse->id)
             ->where('subject_type', (new WasteLot)->getMorphClass())
@@ -80,25 +66,18 @@ class GetPlantStockSummaryAction
             ->whereIn('status', GetLotStockKgAction::occupyingStatuses())
             ->get(['id', 'subject_id', 'net_weight_kg']);
 
-<<<<<<< HEAD
         /** @var Collection<int, int> $lotEwc */
-=======
->>>>>>> laraxot/dev
         $lotEwc = WasteLot::query()
             ->whereIn('id', $units->pluck('subject_id')->all())
             ->pluck('ewc_code_id', 'id');
 
         $result = [];
         foreach ($units as $unit) {
-<<<<<<< HEAD
             $subjectId = $unit->subject_id;
             if ($subjectId === null) {
                 continue;
             }
             $ewcId = $lotEwc->get($subjectId) ?? 0;
-=======
-            $ewcId = (int) ($lotEwc[$unit->subject_id] ?? 0);
->>>>>>> laraxot/dev
             if ($ewcId === 0) {
                 continue;
             }
@@ -118,18 +97,12 @@ class GetPlantStockSummaryAction
         $areaIds = Area::query()->where('warehouse_id', $warehouse->id)->pluck('id')->all();
         $authorizedIds = AreaWasteRule::query()->whereIn('area_id', $areaIds)->distinct()->pluck('authorized_waste_id')->all();
 
-<<<<<<< HEAD
         /** @var \Illuminate\Database\Eloquent\Collection<int, AuthorizedWaste> $authorizedWastes */
         $authorizedWastes = AuthorizedWaste::query()->whereIn('id', $authorizedIds)->get();
 
         $result = [];
         foreach ($authorizedWastes as $authorized) {
             $ewcId = $authorized->ewc_code_id;
-=======
-        $result = [];
-        foreach (AuthorizedWaste::query()->whereIn('id', $authorizedIds)->get() as $authorized) {
-            $ewcId = (int) $authorized->ewc_code_id;
->>>>>>> laraxot/dev
             $limit = $authorized->max_storage_kg === null ? null : (float) $authorized->max_storage_kg;
             if (! \array_key_exists($ewcId, $result)) {
                 $result[$ewcId] = $limit;
