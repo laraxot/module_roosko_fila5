@@ -8,7 +8,8 @@
     "order": 70,
     "providers": [
         "Modules\\Roosko\\Providers\\RooskoServiceProvider",
-        "Modules\\Roosko\\Providers\\Filament\\AdminPanelProvider"
+        "Modules\\Roosko\\Providers\\Filament\\AdminPanelProvider",
+        "Modules\\Roosko\\Providers\\Filament\\CustomerPanelProvider"
     ],
     "aliases": {},
     "files": [],
