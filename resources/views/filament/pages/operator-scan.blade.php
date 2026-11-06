@@ -30,9 +30,18 @@
     </style>
 
     <div class="roosko-op">
-        {{-- Campo sempre a fuoco: i lettori keyboard wedge digitano il codice seguito da Invio. --}}
+        {{-- Campo sempre a fuoco: i lettori keyboard wedge digitano il codice seguito da Invio.
+             inputmode="none" evita che la tastiera virtuale copra lo schermo a ogni rifocus; il bottone
+             tastiera passa a inputmode="text" (scelta ricordata sul dispositivo) per digitare il codice a mano. --}}
         <form class="roosko-op-scan" wire:submit="submitScan"
               x-data="{
+                  keyboard: (() => { try { return localStorage.getItem('roosko-op-keyboard') === '1'; } catch (e) { return false; } })(),
+                  toggleKeyboard() {
+                      this.keyboard = ! this.keyboard;
+                      try { localStorage.setItem('roosko-op-keyboard', this.keyboard ? '1' : '0'); } catch (e) {}
+                      this.$refs.scan.blur();
+                      this.$nextTick(() => this.$refs.scan.focus());
+                  },
                   refocus() {
                       setTimeout(() => {
                           const active = document.activeElement;
@@ -48,6 +57,7 @@
                 x-ref="scan"
                 type="text"
                 inputmode="none"
+                x-bind:inputmode="keyboard ? 'text' : 'none'"
                 autocomplete="off"
                 autocapitalize="characters"
                 spellcheck="false"
@@ -56,6 +66,9 @@
                 aria-label="{{ $t('scan.field') }}"
                 placeholder="{{ $awaiting === 'location' ? $t('scan.placeholder_location') : $t('scan.placeholder') }}"
             >
+            <x-filament::button type="button" color="gray" class="roosko-op-camera-btn" x-on:click="toggleKeyboard()" icon="heroicon-o-command-line" :tooltip="$t('scan.keyboard')" x-bind:aria-pressed="keyboard ? 'true' : 'false'">
+                <span class="sr-only">{{ $t('scan.keyboard') }}</span>
+            </x-filament::button>
             <div x-data="rooskoScanner" data-roosko-scanner>
                 <x-filament::button type="button" color="gray" class="roosko-op-camera-btn" x-on:click="start()" icon="heroicon-o-camera" :tooltip="$t('scan.camera')">
                     <span class="sr-only">{{ $t('scan.camera') }}</span>

@@ -15,6 +15,7 @@ return [
         'placeholder' => 'Scansiona un\'unità o una posizione',
         'placeholder_location' => 'Scansiona la posizione di destinazione',
         'hint' => 'Usa il grilletto del palmare oppure la fotocamera. Il campo resta sempre pronto.',
+        'keyboard' => 'Mostra o nascondi la tastiera per digitare il codice',
         'camera' => 'Fotocamera',
         'camera_close' => 'Chiudi',
         'not_found' => 'Codice «:code» non riconosciuto',
