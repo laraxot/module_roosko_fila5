@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\AreaWasteRuleResource\Tables;
 
+use Modules\Waste\Models\AuthorizedWaste;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Table;
 use Filament\Actions\DeleteAction;
@@ -65,7 +66,9 @@ class AreaWasteRulesTable extends XotBaseResourceTable
 
     private static function ewc(AreaWasteRule $rule): ?string
     {
-        $ewc = $rule->authorizedWaste?->ewcCode;
+        // Relazioni caricate in eager loading; un codice autorizzato eliminato lascia la cella vuota.
+        $authorized = $rule->getRelationValue('authorizedWaste');
+        $ewc = $authorized instanceof AuthorizedWaste ? $authorized->getRelationValue('ewcCode') : null;
 
         return $ewc instanceof EwcCode ? $ewc->code.($ewc->is_hazardous ? '*' : '') : null;
     }

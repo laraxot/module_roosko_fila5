@@ -100,7 +100,6 @@ class GetCustomerSiteDeliveredKgAction
         $deliveries = (new Delivery)->getTable();
         $firs = (new Fir)->getTable();
         $sites = (new OperatorSite)->getTable();
-        $grammar = (new Delivery)->getConnection()->getQueryGrammar();
 
         $rows = Delivery::query()
             ->join($firs, $firs.'.id', '=', $deliveries.'.fir_id')
@@ -112,7 +111,8 @@ class GetCustomerSiteDeliveredKgAction
             ->when($since instanceof CarbonInterface, static fn (Builder $query): Builder => $query->where($deliveries.'.arrived_at', '>=', $since))
             ->groupBy($sites.'.id')
             ->select($sites.'.id as site_id')
-            ->selectRaw('SUM('.$grammar->wrap($deliveries.'.accepted_kg').') as kg')
+            // `accepted_kg` esiste solo in deliveries: non ambiguo nella join.
+            ->selectRaw('SUM(accepted_kg) as kg')
             ->toBase()
             ->pluck('kg', 'site_id');
 

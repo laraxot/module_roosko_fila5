@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\ShipmentResource\RelationManagers;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
@@ -82,8 +83,10 @@ class ShipmentItemsRelationManager extends XotBaseRelationManager
     #[\Override]
     public function table(Table $table): Table
     {
-        return parent::table($table)->modifyQueryUsing(static fn (Builder $query): Builder => $query->with(['stockUnit.subject' => static function (MorphTo $morphTo): void {
-            $morphTo->morphWith([WasteLot::class => ['ewcCode']]);
+        return parent::table($table)->modifyQueryUsing(static fn (Builder $query): Builder => $query->with(['stockUnit.subject' => static function (Relation $relation): void {
+            if ($relation instanceof MorphTo) {
+                $relation->morphWith([WasteLot::class => ['ewcCode']]);
+            }
         }]));
     }
 

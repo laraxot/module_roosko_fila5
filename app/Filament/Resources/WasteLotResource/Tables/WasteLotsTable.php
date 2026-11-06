@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\WasteLotResource\Tables;
 
+use Modules\Waste\Models\EwcCode;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Table;
 use Filament\Actions\EditAction;
@@ -35,7 +36,7 @@ class WasteLotsTable extends XotBaseResourceTable
     {
         return [
             'unit_code' => TextColumn::make('unit_code')->state(static fn (WasteLot $record): ?string => $record->stockUnit?->code),
-            'ewc_code' => TextColumn::make('ewc_code')->state(static fn (WasteLot $record): ?string => $record->ewcCode?->code),
+            'ewc_code' => TextColumn::make('ewc_code')->state(static fn (WasteLot $record): ?string => ($ewc = $record->getRelationValue('ewcCode')) instanceof EwcCode ? $ewc->code : null),
             'classification' => TextColumn::make('classification')->badge()->sortable(),
             'destination' => TextColumn::make('destination')->badge()->sortable(),
             'unit_status' => TextColumn::make('unit_status')->badge()->state(static fn (WasteLot $record): mixed => $record->stockUnit?->status),

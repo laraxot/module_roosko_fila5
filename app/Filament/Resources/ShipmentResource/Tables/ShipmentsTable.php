@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\ShipmentResource\Tables;
 
+use Modules\Xot\Actions\Cast\SafeFloatCastAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Table;
 use Filament\Actions\ViewAction;
@@ -39,7 +40,7 @@ class ShipmentsTable extends XotBaseResourceTable
             'document_number' => TextColumn::make('document_number')->searchable(),
             'status' => TextColumn::make('status')->badge()->sortable(),
             'items_count' => TextColumn::make('items_count')->counts('items'),
-            'total_kg' => TextColumn::make('total_kg')->numeric(3)->state(static fn (Shipment $record): float => round((float) $record->getAttribute('items_sum_quantity_kg'), 3)),
+            'total_kg' => TextColumn::make('total_kg')->numeric(3)->state(static fn (Shipment $record): float => round(SafeFloatCastAction::cast($record->getAttribute('items_sum_quantity_kg')), 3)),
             'dispatched_at' => TextColumn::make('dispatched_at')->dateTime()->sortable(),
         ];
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Customer\Resources\CustomerSiteResource\Tables;
 
+use Modules\Xot\Actions\Cast\SafeIntCastAction;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
@@ -50,7 +51,7 @@ class CustomerSitesTable extends XotBaseResourceTable
     public static function deliveredKg(): array
     {
         return once(static function (): array {
-            $siteIds = array_values(array_map(intval(...), CustomerSiteResource::getEloquentQuery()->pluck('id')->all()));
+            $siteIds = array_values(array_map(SafeIntCastAction::cast(...), CustomerSiteResource::getEloquentQuery()->pluck('id')->all()));
 
             return app(GetCustomerSiteDeliveredKgAction::class)->execute($siteIds);
         });
