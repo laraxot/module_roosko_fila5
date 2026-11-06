@@ -62,7 +62,7 @@ class StartTreatmentAction
             $lots[$unit->id] = $resolver->execute($unit);
         }
 
-        $warehouse = Warehouse::query()->findOrFail($units->first()?->warehouse_id);
+        $warehouse = Warehouse::query()->findOrFail($units->first()->warehouse_id);
         $plant = app(ResolvePlantSiteAction::class)->execute($warehouse);
         $this->assertAuthorized($plant, $operation, $lots);
 
@@ -117,7 +117,9 @@ class StartTreatmentAction
             static fn (WasteLot $lot): bool => $lot->classification->isWaste(),
         ))));
 
-        foreach (EwcCode::query()->whereIn('id', $ewcIds)->get() as $ewc) {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, EwcCode> $ewcCodes */
+        $ewcCodes = EwcCode::query()->whereIn('id', $ewcIds)->get();
+        foreach ($ewcCodes as $ewc) {
             $authorized = app(FindAuthorizedWasteAction::class)->execute($plant, $ewc, $operation);
             if (! $authorized instanceof AuthorizedWaste) {
                 throw AuthorizationException::wasteNotAuthorized($ewc->code, $operation->value, $plant->name);
