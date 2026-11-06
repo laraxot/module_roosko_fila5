@@ -144,8 +144,14 @@ usano anche route binding, badge e widget. Senza cliente corrente le query non r
 (`viewAny`/`view`, più `create`/`update` per i cantieri) e solo su record del cliente. In creazione
 del cantiere `operator_id` e `is_plant = false` li fissa il server (`ResolveCustomerSiteOperatorAction`):
 con un solo soggetto si usa quello, con più soggetti il cliente sceglie fra i suoi.
-I kg per cantiere li calcola `GetCustomerSiteDeliveredKgAction` (FIR e conferimenti su connessioni
-diverse: due query, niente join).
+I kg per cantiere li calcola `GetCustomerSiteDeliveredKgAction`: solo FIR con il cantiere come luogo di
+produzione **e** il suo soggetto titolare come produttore; con i moduli sullo stesso database un'unica
+query aggregata (join), altrimenti query per connessione. La tabella cantieri la chiama una volta per
+richiesta. Gli id dei soggetti del cliente (`GetCustomerOperatorIdsAction`) sono memoizzati per richiesta.
+
+Il **numero di iscrizione RENTRI** del cantiere è modificabile dal cliente solo finché nessun FIR indica
+il cantiere (`IsSiteRegistrationLockedAction`): poi il campo è in sola lettura e `EditCustomerSite` lo
+scarta anche se arriva nei dati; la variazione si chiede all'impianto.
 
 **Come dare accesso a un cliente.**
 
@@ -168,11 +174,107 @@ clienti non entra; un cliente di cui non è membro risponde 404.
 - Scansione di un'unità → scheda (codice, EER, peso, posizione, stato) e azioni: Stocca/Sposta
   (seconda scansione = posizione), Avvia trattamento, Aggiungi a uscita, Ristampa etichetta,
   Rettifica peso. Scansione di una posizione → unità presenti.
+- Codici riconosciuti (`ResolveScannedCodeAction`): identificatori di Labeling (QR, barcode, RFID, NFC,
+  URL `/l/{code}`), poi il codice dell'etichetta ripulito (caratteri dei lettori wedge, URL del QR):
+  unità `SU-…`, posizione `LOC-{magazzino}-{codice}` (anche senza identificatore assegnato), codice
+  interno della posizione digitato a mano.
+- Tastiera: il campo ha `inputmode="none"` (niente tastiera virtuale coi lettori wedge); il bottone
+  tastiera passa a `inputmode="text"` per digitare il codice dal telefono (scelta ricordata sul dispositivo).
+- Un'unità caricata su un'uscita è `reserved`: Stocca/Sposta e Avvia trattamento non sono disponibili
+  finché non viene tolta dall'uscita (o l'uscita annullata).
 - PWA minima: `public/manifest.webmanifest` + icona (pubblicati con
   `php artisan vendor:publish --tag=roosko-assets`), service worker servito dalla route
   `roosko.service-worker` (`/roosko/sw.js`, scope `/roosko/`) che mette in cache solo asset statici.
 
 Build: `cd Modules/Roosko && npm install && npm run build`.
+
+## Integrità e concorrenza
+
+- **Transazione d'impianto** (`RunInPlantTransactionAction`): le connessioni dei moduli si deduplicano
+  per istanza. Con l'alias del modulo Tenant (stessa istanza `Connection` per i moduli sullo stesso
+  database) è una sola transazione vera; con database separati l'atomicità è best-effort. La
+  transazione più esterna si ritenta fino a 3 volte su deadlock/serializzazione.
+- **Decisioni sul conferimento** (accetta, respingi): conferimento e FIR si rileggono con
+  `lockForUpdate` dentro la transazione (`LockDeliveryForDecisionAction`) e si ricontrolla lo stato.
+- **Un FIR = un conferimento vivo**: lock del FIR in ricezione + colonna generata
+  `deliveries.open_fir_id` (fir_id se non respinto né eliminato) con indice unique.
+- **FIR in bozza**: in ricezione il FIR avanza `draft → issued → in_transit → delivered` con
+  `ChangeFirStatusAction` (solo transizioni consentite); un FIR in stato finale non si conferisce.
+- **Uscite**: caricare un'unità la porta a `reserved` (lock dell'uscita e dell'unità); togliere la riga
+  (`RemoveShipmentItemAction`) o annullare l'uscita (`CancelShipmentAction`) la riporta a `stored`. La
+  spedizione rilegge righe e stato sotto lock e usa i kg del movimento di uscita (peso attuale) per riga,
+  FIR e scarico di registro.
+- **Registro**: i carichi d'origine di un lotto sono solo le scritture effettive (dopo una rettifica,
+  la rettifica).
+- **Query limitate**: niente `whereIn` con liste di id che crescono con la storia
+  (`WhereInModuleQueryAction`: subquery quando i moduli condividono la connessione); tabelle e widget
+  con eager loading e aggregati (numero di query costante, test con Livewire).
+
+## Ruoli operativi e permessi
+
+`RooskoPermissionSeeder` (richiamato da `RooskoDatabaseSeeder`, idempotente) crea i permessi delle
+policy di Roosko e tre ruoli operativi con i permessi dei moduli di dominio (nomi `{modello}.{abilità}`
+letti dalle policy dei moduli). I ruoli danno le **abilità**; l'accesso a un pannello lo dà il ruolo
+col nome del pannello (`roosko::admin`, `waste::admin`, …, vedi `BaseUser::canAccessPanel`): a un
+utente si assegnano quindi il ruolo operativo **e** i ruoli dei pannelli che usa (colonna *Pannelli*).
+Tutte le policy di Roosko usano `DeniesUndeclaredFilamentAbilities` (eliminazione massiva, riordino,
+replica, collegamenti negati se non dichiarati).
+
+| Ruolo | Chi | Pannelli |
+| --- | --- | --- |
+| `roosko.operator` | operatore di piazzale | `roosko::admin` |
+| `roosko.acceptance` | ufficio accettazione e pesatura | `roosko::admin`, `waste::admin`, `weighing::admin` |
+| `roosko.technical_manager` | responsabile tecnico | tutti i pannelli dei moduli di dominio |
+
+| Modello | Operatore | Accettazione | Responsabile tecnico |
+| --- | --- | --- | --- |
+| `area` | viewAny, view | — | viewAny, view, update |
+| `area_waste_rule` | — | — | viewAny, view, create, update, delete |
+| `authorized_waste` | — | — | viewAny, view, create, update, delete |
+| `delivery` | viewAny, view | viewAny, view, create, update, weigh, accept, reject | viewAny, view, create, update, weigh, accept, reject, delete |
+| `ewc_code` | — | viewAny, view | viewAny, view |
+| `fir` | — | viewAny, view, create, update | viewAny, view, create, update |
+| `identifier` | viewAny, view | — | viewAny, view |
+| `label_print` | viewAny, view, create | viewAny, view, create | viewAny, view, create |
+| `lineage_link` | — | — | viewAny, view |
+| `location` | viewAny, view | viewAny, view | viewAny, view, update |
+| `machine` | viewAny, view | — | viewAny, view |
+| `operator` | — | viewAny, view, create, update | viewAny, view, create, update |
+| `operator_site` | — | viewAny, view, create, update | viewAny, view, create, update |
+| `plant_authorization` | — | — | viewAny, view, create, update, delete |
+| `processing_input` | — | — | viewAny, view |
+| `processing_order` | viewAny, view, registerOutput, complete | — | viewAny, view, registerOutput, complete, create, update, start, addInput, forceComplete, cancel |
+| `processing_output` | — | — | viewAny, view |
+| `register` | — | viewAny, view | viewAny, view |
+| `register_entry` | — | viewAny, view | viewAny, view, rectify |
+| `rentri_credential` | — | — | viewAny, view |
+| `rentri_transmission` | — | viewAny, view | viewAny, view, retry, sign |
+| `scale` | — | viewAny, view, readScale | viewAny, view, readScale |
+| `shipment` | viewAny, view, load | viewAny, view, create, update, load, dispatch, cancel | viewAny, view, load, create, update, dispatch, cancel, delete |
+| `shipment_item` | viewAny, view | viewAny, view, delete | viewAny, view, delete |
+| `stock_movement` | — | — | viewAny, view |
+| `stock_unit` | viewAny, view | viewAny, view | viewAny, view, update |
+| `warehouse` | viewAny, view | viewAny, view | viewAny, view |
+| `waste_lot` | viewAny, view, store, treat, reprintLabel | viewAny, view, update, reprintLabel, adjustWeight | viewAny, view, store, treat, reprintLabel, update, adjustWeight |
+| `weighing` | — | viewAny, view, create, update, void | viewAny, view, create, update, void |
+
+Azioni e abilità controllate (bottone nascosto e chiamata diretta rifiutata):
+
+| Azione | Abilità |
+| --- | --- |
+| Registra arrivo | `delivery.create` |
+| Pesa tara | `delivery.weigh` |
+| Accetta / Respingi | `delivery.accept` / `delivery.reject` |
+| Nuova uscita | `shipment.create` |
+| Carica unità (uscita, pagina Operatore) | `shipment.load` |
+| Spedisci / Annulla uscita | `shipment.dispatch` / `shipment.cancel` |
+| Togli unità dall'uscita | `shipment_item.delete` |
+| Pagina Operatore | `waste_lot.viewAny` |
+| Stocca/Sposta, Avvia trattamento | `waste_lot.store`, `waste_lot.treat` |
+| Ristampa etichetta, Rettifica peso | `waste_lot.reprintLabel`, `waste_lot.adjustWeight` |
+| Lavorazioni in corso | `processing_order.viewAny` |
+| Registra prodotto / Completa | `processing_order.registerOutput` / `processing_order.complete` |
+| Forza la chiusura | `processing_order.forceComplete` |
 
 ## Hardware supportato
 
@@ -187,7 +289,9 @@ Build: `cd Modules/Roosko && npm install && npm run build`.
 
 ## Configurazione (`config/config.php`)
 
-- `queues.labels`, `queues.rentri`: code per stampa e RENTRI (null = default).
+- `queues.labels`, `queues.rentri`: code per stampa e RENTRI. `null` = coda dell'action: per RENTRI è
+  la coda dedicata `rentri` (`rentri.queue.name`, vedi README di Rentri); per le etichette la coda di
+  default del connettore.
 - `authorization_usage_thresholds.warning|danger`: soglie % dei widget.
 
 ## Dipendenze
@@ -203,8 +307,6 @@ aggiuntivo). npm: `qr-scanner`, `vite`, `laravel-vite-plugin`.
 - **Verifica RENTRI sullo Swagger demo** (`https://demoapi.rentri.gov.it/docs`): payload e codici
   mappati da Rentri (accettazione, emissione FIR in uscita, trasmissione registro) da provare end-to-end
   con una credenziale demo; la trasmissione periodica del registro non è ancora orchestrata da Roosko.
-- Etichette delle posizioni: il codice stampato da Labeling per una `Location` è `LOC-{magazzino}-{codice}`;
-  la UI operatore la risolve tramite l'identificatore assegnato (consigliato assegnarlo a tutte le posizioni).
 - Ricalcolo dei limiti annui (`max_annual_kg`) nei widget (oggi solo il limite istantaneo).
 
 ## Audit
