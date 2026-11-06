@@ -153,13 +153,14 @@ final class PlantFixture
 
     /**
      * @param  OperatorSite|null  $producerSite  cantiere di produzione: il produttore diventa il suo soggetto
+     * @param  string  $status  stato iniziale (Waste vieta di cambiarlo poi a mano)
      */
-    public function fir(EwcCode $ewc, float $quantityKg = 2000.0, bool $digital = false, ?OperatorSite $producerSite = null): Fir
+    public function fir(EwcCode $ewc, float $quantityKg = 2000.0, bool $digital = false, ?OperatorSite $producerSite = null, string $status = 'in_transit'): Fir
     {
         return Fir::factory()->create([
             'number' => 'FIR-'.Str::upper(Str::random(8)),
             'is_digital' => $digital,
-            'status' => 'in_transit',
+            'status' => $status,
             'producer_operator_id' => $producerSite === null ? $this->producer->id : $producerSite->operator_id,
             'producer_site_id' => $producerSite?->id,
             'recipient_operator_id' => $this->plantOperator->id,

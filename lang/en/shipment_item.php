@@ -15,6 +15,7 @@ return [
     ],
     'actions' => [
         'load' => ['label' => 'Load unit', 'icon' => 'heroicon-o-qr-code', 'tooltip' => 'Scan or type the unit code'],
+        'remove' => ['label' => 'Remove', 'icon' => 'heroicon-o-trash', 'tooltip' => 'Remove the unit from the shipment and release it'],
         'delete' => ['label' => 'Unload', 'icon' => 'heroicon-o-trash', 'tooltip' => 'Remove the unit from the shipment'],
     ],
 ];

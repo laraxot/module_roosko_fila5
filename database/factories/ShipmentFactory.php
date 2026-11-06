@@ -38,7 +38,7 @@ class ShipmentFactory extends Factory
 
     public function endOfWaste(string $declarationNumber = 'DC-TEST-001'): static
     {
-        return $this->state(static fn (): array => [
+        return $this->state(fn (): array => [
             'document_type' => ShipmentDocumentEnum::EOW_DECLARATION,
             'document_number' => $declarationNumber,
             'operation' => null,

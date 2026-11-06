@@ -21,6 +21,7 @@ return [
     'lot' => [
         'not_a_waste_lot' => 'L\'unità :unit non contiene un lotto',
         'placement_denied' => ':unit non può andare in :location: :reason',
+        'unit_reserved' => 'L\'unità :unit è impegnata su un\'uscita: toglierla dall\'uscita prima di trattarla o spostarla',
         'eow_batch_code_required' => 'Un prodotto End of Waste richiede il codice di lotto EoW',
         'no_units_to_treat' => 'Nessuna unità da trattare',
         'order_without_inputs' => 'L\'ordine :order non ha input: aggiungere prima le unità da trattare',

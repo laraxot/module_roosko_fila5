@@ -21,6 +21,7 @@ return [
     'lot' => [
         'not_a_waste_lot' => 'Unit :unit does not contain a lot',
         'placement_denied' => ':unit cannot go to :location: :reason',
+        'unit_reserved' => 'Unit :unit is reserved for a shipment: remove it from the shipment before treating or moving it',
         'eow_batch_code_required' => 'An End of Waste product requires an EoW batch code',
         'no_units_to_treat' => 'No units to treat',
         'order_without_inputs' => 'Order :order has no inputs: add the units to treat first',

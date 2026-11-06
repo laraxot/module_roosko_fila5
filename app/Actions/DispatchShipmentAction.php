@@ -39,6 +39,8 @@ use Webmozart\Assert\Assert;
  *   impianto, destinatario = uscita), scrive uno scarico per unita' (causa `to_third_parties`,
  *   controparte = destinatario, `load_entry_ids` = carichi d'origine del lotto). Se il sito ha
  *   una credenziale RENTRI il FIR nasce digitale e l'emissione su RENTRI si accoda dopo il commit.
+ * - Righe, stato e pesi si rileggono dentro la transazione con lock sull'uscita; i kg di ogni
+ *   riga sono quelli movimentati (peso attuale dell'unita'), gli stessi di FIR e registro.
  * - End of Waste / sottoprodotti: serve il numero del documento (DDT o dichiarazione di
  *   conformita', che si riporta sui lotti EoW); nessuna scrittura sul registro rifiuti.
  */
@@ -48,53 +50,45 @@ class DispatchShipmentAction
 
     public function execute(Shipment $shipment): Shipment
     {
-        Assert::true(
-            $shipment->status->canTransitionTo(ShipmentStatusEnum::DISPATCHED),
-            RooskoException::transitionMessage($shipment->code, $shipment->status, ShipmentStatusEnum::DISPATCHED),
-        );
-
-        /** @var Collection<int, ShipmentItem> $items */
-        $items = $shipment->items()->orderBy('id')->get();
-        if ($items->isEmpty()) {
-            throw ShipmentException::empty($shipment->code);
-        }
+        $this->assertDispatchable($shipment);
 
         $isWaste = $shipment->document_type->carriesWaste();
-        if ($isWaste && ! $shipment->operation instanceof WasteOperationEnum) {
-            throw ShipmentException::operationRequired($shipment->code);
-        }
-        if (! $isWaste && ($shipment->document_number === null || trim($shipment->document_number) === '')) {
-            throw ShipmentException::documentNumberRequired($shipment->code);
-        }
-
         $plant = app(ResolvePlantSiteAction::class)->execute(Warehouse::query()->findOrFail($shipment->warehouse_id));
         $credential = $isWaste ? app(FindRentriCredentialAction::class)->execute($plant) : null;
 
-        $issueFir = app(RunInPlantTransactionAction::class)->execute(function () use ($shipment, $items, $isWaste, $plant, $credential): ?Fir {
+        $issueFir = app(RunInPlantTransactionAction::class)->execute(function () use ($shipment, $isWaste, $plant, $credential): ?Fir {
+            // Lock dell'uscita e rilettura delle righe sotto lock: nessuna riga aggiunta o tolta in parallelo (R7).
+            $locked = Shipment::query()->lockForUpdate()->findOrFail($shipment->id);
+            $this->assertDispatchable($locked);
             $now = CarbonImmutable::now();
-            $lines = $items->map(static function (ShipmentItem $item): array {
-                $unit = StockUnit::query()->findOrFail($item->stock_unit_id);
 
-                return ['item' => $item, 'unit' => $unit, 'lot' => app(ResolveWasteLotAction::class)->execute($unit)];
+            /** @var Collection<int, ShipmentItem> $items */
+            $items = $locked->items()->orderBy('id')->get();
+
+            // Prima escono le unita': i kg di ogni riga diventano quelli del movimento (peso attuale
+            // dell'unita' riletto sotto lock), cosi' movimento, FIR e registro coincidono (R6).
+            $lines = $items->map(static function (ShipmentItem $item) use ($locked): array {
+                $unit = StockUnit::query()->findOrFail($item->stock_unit_id);
+                $lot = app(ResolveWasteLotAction::class)->execute($unit);
+                $movement = app(ShipStockUnitAction::class)->execute($unit, $locked);
+                $item->forceFill(['quantity_kg' => round($movement->quantityKg(), 3)])->save();
+
+                return ['item' => $item, 'unit' => $unit, 'lot' => $lot];
             });
 
             $newFir = null;
-            if ($isWaste && $shipment->fir_id === null) {
-                $newFir = $this->createOutboundFir($shipment, $plant, $lines, $credential instanceof RentriCredential);
-                $shipment->forceFill(['fir_id' => $newFir->id]);
+            if ($isWaste && $locked->fir_id === null) {
+                $newFir = $this->createOutboundFir($locked, $plant, $lines, $credential instanceof RentriCredential);
+                $locked->forceFill(['fir_id' => $newFir->id]);
             }
 
             $register = $isWaste ? app(ResolvePlantRegisterAction::class)->execute($plant) : null;
 
             foreach ($lines as $line) {
-                /** @var StockUnit $unit */
-                $unit = $line['unit'];
                 /** @var WasteLot $lot */
                 $lot = $line['lot'];
                 /** @var ShipmentItem $item */
                 $item = $line['item'];
-
-                app(ShipStockUnitAction::class)->execute($unit, $shipment);
 
                 if ($register !== null) {
                     app(PostRegisterEntryAction::class)->execute(new RegisterEntryData(
@@ -105,19 +99,20 @@ class DispatchShipmentAction
                         quantityKg: $item->quantityKg(),
                         physicalState: $lot->physical_state,
                         hazardProperties: $lot->hazardPropertyList(),
-                        operation: $shipment->operation,
-                        firId: $shipment->fir_id,
-                        counterpartOperatorId: $shipment->recipient_operator_id,
+                        operation: $locked->operation,
+                        firId: $locked->fir_id,
+                        counterpartOperatorId: $locked->recipient_operator_id,
                         operationAt: $now,
-                        reference: $shipment,
+                        reference: $locked,
                         loadEntryIds: app(GetLotLoadEntryIdsAction::class)->execute($lot),
                     ));
-                } elseif ($shipment->document_type === ShipmentDocumentEnum::EOW_DECLARATION && $lot->eow_declaration_number === null) {
-                    $lot->forceFill(['eow_declaration_number' => $shipment->document_number])->save();
+                } elseif ($locked->document_type === ShipmentDocumentEnum::EOW_DECLARATION && $lot->eow_declaration_number === null) {
+                    $lot->forceFill(['eow_declaration_number' => $locked->document_number])->save();
                 }
             }
 
-            $shipment->forceFill(['status' => ShipmentStatusEnum::DISPATCHED, 'dispatched_at' => $now])->save();
+            $locked->forceFill(['status' => ShipmentStatusEnum::DISPATCHED, 'dispatched_at' => $now])->save();
+            $shipment->setRawAttributes($locked->getAttributes(), true);
 
             return $newFir;
         });
@@ -129,6 +124,25 @@ class DispatchShipmentAction
         }
 
         return $shipment;
+    }
+
+    private function assertDispatchable(Shipment $shipment): void
+    {
+        Assert::true(
+            $shipment->status->canTransitionTo(ShipmentStatusEnum::DISPATCHED),
+            RooskoException::transitionMessage($shipment->code, $shipment->status, ShipmentStatusEnum::DISPATCHED),
+        );
+        if (! $shipment->items()->exists()) {
+            throw ShipmentException::empty($shipment->code);
+        }
+
+        $isWaste = $shipment->document_type->carriesWaste();
+        if ($isWaste && ! $shipment->operation instanceof WasteOperationEnum) {
+            throw ShipmentException::operationRequired($shipment->code);
+        }
+        if (! $isWaste && ($shipment->document_number === null || trim($shipment->document_number) === '')) {
+            throw ShipmentException::documentNumberRequired($shipment->code);
+        }
     }
 
     /**

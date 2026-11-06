@@ -33,6 +33,6 @@ class AreaWasteRuleFactory extends Factory
 
     public function limit(float $maxStorageKg): static
     {
-        return $this->state(static fn (): array => ['max_storage_kg' => $maxStorageKg]);
+        return $this->state(fn (): array => ['max_storage_kg' => $maxStorageKg]);
     }
 }

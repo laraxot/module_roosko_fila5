@@ -36,7 +36,7 @@ class WasteLotFactory extends Factory
 
     public function ewc(EwcCode $ewc): static
     {
-        return $this->state(static fn (): array => ['ewc_code_id' => $ewc->id]);
+        return $this->state(fn (): array => ['ewc_code_id' => $ewc->id]);
     }
 
     /**
@@ -44,14 +44,14 @@ class WasteLotFactory extends Factory
      */
     public function hazardous(array $properties = ['HP14']): static
     {
-        return $this->state(static fn (): array => [
+        return $this->state(fn (): array => [
             'hazard_properties' => array_map(HazardPropertyEnum::from(...), $properties),
         ]);
     }
 
     public function endOfWaste(string $batchCode = 'EOW-TEST-001'): static
     {
-        return $this->state(static fn (): array => [
+        return $this->state(fn (): array => [
             'classification' => LotClassificationEnum::END_OF_WASTE,
             'destination' => LotDestinationEnum::SALE,
             'eow_batch_code' => $batchCode,

@@ -17,7 +17,8 @@ use Spatie\QueueableAction\QueueableAction;
  *
  * Il motivo di un eventuale rifiuto dei guard (capacita', autorizzazione) si legge prima con
  * CheckPlacementAction e diventa una LotException con testo per l'operatore; il movimento lo
- * registra PutAwayStockUnitAction di Warehouse.
+ * registra PutAwayStockUnitAction di Warehouse. Un'unita' impegnata su un'uscita (`reserved`)
+ * non si sposta: prima si toglie dall'uscita.
  */
 class StoreLotAction
 {
@@ -26,6 +27,7 @@ class StoreLotAction
     public function execute(StockUnit $unit, Location $location): StockUnit
     {
         app(ResolveWasteLotAction::class)->execute($unit);
+        app(AssertUnitNotReservedAction::class)->execute($unit);
 
         $reason = app(CheckPlacementAction::class)->execute($unit, $location);
         if ($reason !== null) {

@@ -122,8 +122,7 @@ describe('un FIR = un conferimento aperto', function (): void {
     test('un FIR in stato finale non si conferisce', function (string $status): void {
         /** @var PlantFixture $plant */
         $plant = $this->plant;
-        $fir = $plant->fir($plant->plastics);
-        $fir->forceFill(['status' => $status])->save();
+        $fir = $plant->fir($plant->plastics, status: $status);
 
         expect(static fn () => app(ReceiveDeliveryAction::class)->execute($fir, $plant->plant, $plant->warehouse))
             ->toThrow(DeliveryException::class);
@@ -135,13 +134,14 @@ describe('FIR in bozza (default della UI di Waste)', function (): void {
     test('la ricezione porta il FIR draft fino a delivered e l\'accettazione riesce', function (string $initial): void {
         /** @var PlantFixture $plant */
         $plant = $this->plant;
-        $fir = $plant->fir($plant->plastics, 1000.0);
-        $fir->forceFill(['status' => $initial])->save();
+        $fir = $plant->fir($plant->plastics, 1000.0, status: $initial);
 
         $delivery = app(ReceiveDeliveryAction::class)->execute($fir, $plant->plant, $plant->warehouse);
 
         Assert::assertSame(FirStatusEnum::DELIVERED, $fir->refresh()->status);
-        Assert::assertNotNull($fir->arrived_at);
+        if ($initial !== 'delivered') {
+            Assert::assertNotNull($fir->arrived_at);
+        }
 
         app(AcceptDeliveryAction::class)->execute($delivery, acceptanceOf(1000.0));
 

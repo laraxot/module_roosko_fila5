@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Actions;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Roosko\Enums\LotDestinationEnum;
 use Modules\Roosko\Enums\ShipmentDocumentEnum;
 use Modules\Roosko\Enums\ShipmentStatusEnum;
@@ -12,9 +12,9 @@ use Modules\Roosko\Exceptions\ShipmentException;
 use Modules\Roosko\Models\Shipment;
 use Modules\Roosko\Models\ShipmentItem;
 use Modules\Roosko\Models\WasteLot;
+use Modules\Waste\Models\EwcCode;
 use Modules\Warehouse\Enums\StockUnitStatusEnum;
 use Modules\Warehouse\Models\StockUnit;
-use Modules\Waste\Models\EwcCode;
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -24,12 +24,43 @@ use Spatie\QueueableAction\QueueableAction;
  *   EoW solo per End of Waste, DDT per EoW e sottoprodotti);
  * - destino del lotto coerente col documento (FIR: recupero/smaltimento/bonifica; altrimenti vendita);
  * - con FIR, un solo codice EER per uscita (un formulario per codice).
+ *
+ * Nella transazione dell'impianto: lock dell'uscita (una spedizione in corso non perde righe,
+ * audit R7), ricontrollo di stato e doppio carico, poi l'unita' passa a `reserved`
+ * (ReserveShipmentUnitAction, sotto lock): non si tratta ne' si sposta finche' e' sull'uscita.
  */
 class AddShipmentItemAction
 {
     use QueueableAction;
 
     public function execute(Shipment $shipment, StockUnit $unit): ShipmentItem
+    {
+        $this->assertLoadable($shipment, $unit);
+
+        $lot = app(ResolveWasteLotAction::class)->execute($unit);
+        $this->assertCoherent($shipment, $unit, $lot);
+
+        return app(RunInPlantTransactionAction::class)->execute(function () use ($shipment, $unit): ShipmentItem {
+            $locked = Shipment::query()->lockForUpdate()->findOrFail($shipment->id);
+            app(ReserveShipmentUnitAction::class)->execute($unit);
+            $this->assertLoadable($locked, $unit);
+
+            $item = ShipmentItem::query()->create([
+                'shipment_id' => $locked->id,
+                'stock_unit_id' => $unit->id,
+                'quantity_kg' => $unit->netWeightKg(),
+            ]);
+
+            if ($locked->status === ShipmentStatusEnum::DRAFT) {
+                $locked->forceFill(['status' => ShipmentStatusEnum::LOADING])->save();
+            }
+            $shipment->setRawAttributes($locked->getAttributes(), true);
+
+            return $item;
+        });
+    }
+
+    private function assertLoadable(Shipment $shipment, StockUnit $unit): void
     {
         if (! $shipment->status->acceptsItems()) {
             throw ShipmentException::closed($shipment->code);
@@ -41,34 +72,10 @@ class AddShipmentItemAction
             throw ShipmentException::otherWarehouse($unit->code);
         }
 
-        $lot = app(ResolveWasteLotAction::class)->execute($unit);
-        $this->assertNotLoadedElsewhere($unit);
-        $this->assertCoherent($shipment, $unit, $lot);
-
-        $connection = (new ShipmentItem)->getConnectionName() ?? DB::getDefaultConnection();
-
-        return DB::connection($connection)->transaction(static function () use ($shipment, $unit): ShipmentItem {
-            $item = ShipmentItem::query()->create([
-                'shipment_id' => $shipment->id,
-                'stock_unit_id' => $unit->id,
-                'quantity_kg' => (float) $unit->net_weight_kg,
-            ]);
-
-            if ($shipment->status === ShipmentStatusEnum::DRAFT) {
-                $shipment->forceFill(['status' => ShipmentStatusEnum::LOADING])->save();
-            }
-
-            return $item;
-        });
-    }
-
-    private function assertNotLoadedElsewhere(StockUnit $unit): void
-    {
         $existing = ShipmentItem::query()
+            ->with('shipment')
             ->where('stock_unit_id', $unit->id)
-            ->whereHas('shipment', static function ($query): void {
-                $query->whereNotIn('status', [ShipmentStatusEnum::CANCELLED->value]);
-            })
+            ->whereHas('shipment', static fn (Builder $query): Builder => $query->where('status', '!=', ShipmentStatusEnum::CANCELLED->value))
             ->first();
 
         if ($existing instanceof ShipmentItem) {

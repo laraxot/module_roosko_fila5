@@ -10,7 +10,8 @@ use Modules\Roosko\Database\Factories\ShipmentItemFactory;
 use Modules\Warehouse\Models\StockUnit;
 
 /**
- * Unita' caricata su un'uscita. `quantity_kg` e' il peso netto al momento del carico
+ * Unita' caricata su un'uscita. `quantity_kg` e' il peso netto al carico, riallineato alla
+ * spedizione con i kg effettivamente movimentati (DispatchShipmentAction)
  * (snapshot per il documento di trasporto; la fonte resta la StockUnit).
  *
  * @property int $id

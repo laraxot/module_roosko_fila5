@@ -24,6 +24,11 @@ class LotException extends RooskoException
         ]));
     }
 
+    public static function unitReserved(string $unitCode): self
+    {
+        return new self(self::translated('lot.unit_reserved', ['unit' => $unitCode]));
+    }
+
     public static function eowBatchCodeRequired(): self
     {
         return new self(self::translated('lot.eow_batch_code_required'));

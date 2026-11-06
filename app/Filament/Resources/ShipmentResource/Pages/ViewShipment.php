@@ -7,6 +7,7 @@ namespace Modules\Roosko\Filament\Resources\ShipmentResource\Pages;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Modules\Roosko\Filament\Actions\CancelShipmentHeaderAction;
 use Modules\Roosko\Filament\Actions\DispatchShipmentHeaderAction;
 use Modules\Roosko\Filament\Resources\ShipmentResource;
 use Modules\Roosko\Models\Shipment;
@@ -25,6 +26,7 @@ class ViewShipment extends XotBaseViewRecord
         return [
             ...parent::getHeaderActions(),
             'dispatch' => DispatchShipmentHeaderAction::make(),
+            'cancel' => CancelShipmentHeaderAction::make(),
             'edit' => EditAction::make()->visible(static fn (Shipment $record): bool => $record->status->acceptsItems()),
         ];
     }

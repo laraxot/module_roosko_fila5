@@ -15,6 +15,7 @@ return [
     ],
     'actions' => [
         'load' => ['label' => 'Carica unità', 'icon' => 'heroicon-o-qr-code', 'tooltip' => 'Scansiona o digita il codice dell\'unità'],
+        'remove' => ['label' => 'Togli', 'icon' => 'heroicon-o-trash', 'tooltip' => 'Togli l\'unità dall\'uscita e liberala'],
         'delete' => ['label' => 'Scarica', 'icon' => 'heroicon-o-trash', 'tooltip' => 'Togli l\'unità dall\'uscita'],
     ],
 ];

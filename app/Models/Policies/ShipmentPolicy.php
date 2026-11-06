@@ -32,6 +32,12 @@ class ShipmentPolicy extends UserBasePolicy
         return $shipment->status->acceptsItems() && $user->hasPermissionTo('shipment.update');
     }
 
+    /** Annulla un'uscita non spedita (CancelShipmentAction): libera le unita' riservate. */
+    public function cancel(UserContract $user, Shipment $shipment): bool
+    {
+        return $shipment->status->canTransitionTo(ShipmentStatusEnum::CANCELLED) && $user->hasPermissionTo('shipment.cancel');
+    }
+
     public function delete(UserContract $user, Shipment $shipment): bool
     {
         return $shipment->status === ShipmentStatusEnum::DRAFT && $user->hasPermissionTo('shipment.delete');

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Modules\Roosko\Filament\Resources\ShipmentResource\RelationManagers;
 
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Roosko\Actions\ResolveWasteLotAction;
 use Modules\Roosko\Filament\Actions\AddShipmentItemHeaderAction;
+use Modules\Roosko\Filament\Actions\RemoveShipmentItemTableAction;
 use Modules\Roosko\Models\Shipment;
 use Modules\Roosko\Models\ShipmentItem;
 use Modules\Roosko\Models\WasteLot;
@@ -20,7 +19,7 @@ use Modules\Xot\Filament\Resources\RelationManagers\XotBaseRelationManager;
 
 /**
  * Righe dell'uscita: carico con scansione/codice (AddShipmentItemHeaderAction), rimozione
- * finche' l'uscita e' aperta.
+ * finche' l'uscita e' aperta (RemoveShipmentItemTableAction, che libera l'unita').
  */
 class ShipmentItemsRelationManager extends XotBaseRelationManager
 {
@@ -62,7 +61,7 @@ class ShipmentItemsRelationManager extends XotBaseRelationManager
     public function getTableActions(): array
     {
         return [
-            'delete' => DeleteAction::make()->visible(static fn (Model $record): bool => $record instanceof ShipmentItem && $record->shipment->status->acceptsItems()),
+            'remove' => RemoveShipmentItemTableAction::make(),
         ];
     }
 

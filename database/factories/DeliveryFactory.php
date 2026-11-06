@@ -42,6 +42,6 @@ class DeliveryFactory extends Factory
 
     public function status(DeliveryStatusEnum $status): static
     {
-        return $this->state(static fn (): array => ['status' => $status]);
+        return $this->state(fn (): array => ['status' => $status]);
     }
 }
