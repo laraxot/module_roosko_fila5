@@ -4,18 +4,28 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\AreaWasteRuleResource\Tables;
 
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Modules\Roosko\Models\AreaWasteRule;
-use Modules\Waste\Models\AuthorizedWaste;
 use Modules\Waste\Models\EwcCode;
 use Modules\Xot\Filament\Resources\Tables\XotBaseResourceTable;
 
 class AreaWasteRulesTable extends XotBaseResourceTable
 {
+    /**
+     * Area, codice autorizzato ed EER in eager loading (audit R13).
+     */
+    #[\Override]
+    public function table(Table $table): Table
+    {
+        return parent::table($table)->modifyQueryUsing(static fn (Builder $query): Builder => $query->with(['area', 'authorizedWaste.ewcCode']));
+    }
+
     /**
      * @return array<string, Column>
      */
@@ -27,7 +37,7 @@ class AreaWasteRulesTable extends XotBaseResourceTable
             'operation' => TextColumn::make('operation')->badge(),
             'max_storage_kg' => TextColumn::make('max_storage_kg')->numeric(3),
             'authorized_max_storage_kg' => TextColumn::make('authorized_max_storage_kg')->numeric(3)
-                ->state(static fn (AreaWasteRule $record): ?string => AuthorizedWaste::query()->find($record->authorized_waste_id)?->max_storage_kg),
+                ->state(static fn (AreaWasteRule $record): ?string => $record->authorizedWaste?->max_storage_kg),
             'notes' => TextColumn::make('notes')->limit(40)->toggleable(isToggledHiddenByDefault: true),
         ];
     }
@@ -55,8 +65,7 @@ class AreaWasteRulesTable extends XotBaseResourceTable
 
     private static function ewc(AreaWasteRule $rule): ?string
     {
-        $authorized = AuthorizedWaste::query()->find($rule->authorized_waste_id);
-        $ewc = $authorized === null ? null : EwcCode::query()->find($authorized->ewc_code_id);
+        $ewc = $rule->authorizedWaste?->ewcCode;
 
         return $ewc instanceof EwcCode ? $ewc->code.($ewc->is_hazardous ? '*' : '') : null;
     }

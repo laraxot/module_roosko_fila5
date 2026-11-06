@@ -7,13 +7,15 @@ namespace Modules\Roosko\Filament\Resources\ShipmentResource\RelationManagers;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Roosko\Actions\ResolveWasteLotAction;
 use Modules\Roosko\Filament\Actions\AddShipmentItemHeaderAction;
 use Modules\Roosko\Filament\Actions\RemoveShipmentItemTableAction;
 use Modules\Roosko\Models\Shipment;
 use Modules\Roosko\Models\ShipmentItem;
 use Modules\Roosko\Models\WasteLot;
-use Modules\Waste\Models\EwcCode;
 use Modules\Warehouse\Models\StockUnit;
 use Modules\Xot\Filament\Resources\RelationManagers\XotBaseRelationManager;
 
@@ -74,11 +76,22 @@ class ShipmentItemsRelationManager extends XotBaseRelationManager
         return [];
     }
 
+    /**
+     * Unita', lotto ed EER in eager loading: una query per tipo e per pagina (audit R13).
+     */
+    #[\Override]
+    public function table(Table $table): Table
+    {
+        return parent::table($table)->modifyQueryUsing(static fn (Builder $query): Builder => $query->with(['stockUnit.subject' => static function (MorphTo $morphTo): void {
+            $morphTo->morphWith([WasteLot::class => ['ewcCode']]);
+        }]));
+    }
+
     private static function ewc(ShipmentItem $item): ?string
     {
-        $unit = StockUnit::query()->find($item->stock_unit_id);
+        $unit = $item->stockUnit;
         $lot = $unit instanceof StockUnit ? app(ResolveWasteLotAction::class)->find($unit) : null;
 
-        return $lot instanceof WasteLot ? EwcCode::query()->find($lot->ewc_code_id)?->code : null;
+        return $lot instanceof WasteLot ? $lot->ewcCode?->code : null;
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\DeliveryResource\RelationManagers;
 
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\Column;
@@ -20,6 +22,15 @@ class WasteLotsRelationManager extends XotBaseRelationManager
     protected static string $relationship = 'wasteLots';
 
     protected static ?string $recordTitleAttribute = 'id';
+
+    /**
+     * Unita' e posizione in eager loading (audit R13).
+     */
+    #[\Override]
+    public function table(Table $table): Table
+    {
+        return parent::table($table)->modifyQueryUsing(static fn (Builder $query): Builder => $query->with('stockUnit.location'));
+    }
 
     /**
      * @return array<string, Column>

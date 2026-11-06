@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Resources\ShipmentResource\Tables;
 
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
@@ -17,6 +19,15 @@ use Modules\Xot\Filament\Resources\Tables\XotBaseResourceTable;
 class ShipmentsTable extends XotBaseResourceTable
 {
     /**
+     * Totale kg con un aggregato SQL (withSum) e destinatario in eager loading (audit R13).
+     */
+    #[\Override]
+    public function table(Table $table): Table
+    {
+        return parent::table($table)->modifyQueryUsing(static fn (Builder $query): Builder => $query->with('recipient')->withSum('items', 'quantity_kg'));
+    }
+
+    /**
      * @return array<string, Column>
      */
     public function getTableColumns(): array
@@ -28,7 +39,7 @@ class ShipmentsTable extends XotBaseResourceTable
             'document_number' => TextColumn::make('document_number')->searchable(),
             'status' => TextColumn::make('status')->badge()->sortable(),
             'items_count' => TextColumn::make('items_count')->counts('items'),
-            'total_kg' => TextColumn::make('total_kg')->numeric(3)->state(static fn (Shipment $record): float => $record->totalKg()),
+            'total_kg' => TextColumn::make('total_kg')->numeric(3)->state(static fn (Shipment $record): float => round((float) $record->getAttribute('items_sum_quantity_kg'), 3)),
             'dispatched_at' => TextColumn::make('dispatched_at')->dateTime()->sortable(),
         ];
     }
