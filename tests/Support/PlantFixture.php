@@ -75,6 +75,16 @@ final class PlantFixture
 
     public Machine $shredder;
 
+    public function ewcForProperty(string $property): EwcCode
+    {
+        return match ($property) {
+            'plastics' => $this->plastics,
+            'oilFilters' => $this->oilFilters,
+            'mechanicalResidue' => $this->mechanicalResidue,
+            default => throw new \InvalidArgumentException('Unknown EWC fixture: '.$property),
+        };
+    }
+
     public static function build(): self
     {
         $fixture = new self;
@@ -150,7 +160,7 @@ final class PlantFixture
             'number' => 'FIR-'.Str::upper(Str::random(8)),
             'is_digital' => $digital,
             'status' => 'in_transit',
-            'producer_operator_id' => $producerSite?->operator_id ?? $this->producer->id,
+            'producer_operator_id' => $producerSite === null ? $this->producer->id : $producerSite->operator_id,
             'producer_site_id' => $producerSite?->id,
             'recipient_operator_id' => $this->plantOperator->id,
             'recipient_site_id' => $this->plant->id,

@@ -46,7 +46,7 @@ describe('flusso 1 — conferimento, pesata, accettazione', function (): void {
     test('FIR :dataset → 2 StockUnit + 2 WasteLot + 1 carico registro + QR', function (string $ewcProperty): void {
         /** @var PlantFixture $plant */
         $plant = $this->plant;
-        $ewc = $plant->{$ewcProperty};
+        $ewc = $plant->ewcForProperty($ewcProperty);
         $loadsBefore = RegisterEntry::query()->where('register_id', $plant->register->id)->where('type', 'load')->count();
 
         $result = $plant->receiveAndAccept($ewc, [1200.0, 800.0]);

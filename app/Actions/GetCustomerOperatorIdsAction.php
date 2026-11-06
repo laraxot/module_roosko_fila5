@@ -6,6 +6,7 @@ namespace Modules\Roosko\Actions;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Waste\Models\Operator;
+use Modules\Xot\Actions\Cast\SafeIntCastAction;
 use Spatie\QueueableAction\QueueableAction;
 
 /**
@@ -30,6 +31,6 @@ class GetCustomerOperatorIdsAction
 
         $ids = Operator::query()->ofTenant($tenant)->orderBy('id')->pluck('id')->all();
 
-        return array_values(array_map(intval(...), $ids));
+        return array_values(array_map(SafeIntCastAction::cast(...), $ids));
     }
 }

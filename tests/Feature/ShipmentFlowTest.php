@@ -92,7 +92,7 @@ describe('flusso 4 — uscita dello scarto verso terzi', function (): void {
         Assert::assertSame($plant->recipient->id, $unload->counterpart_operator_id);
         Assert::assertNotEmpty($unload->load_entry_ids);
 
-        Assert::assertSame(1, Queue::pushed(ActionJob::class, static fn (ActionJob $job): bool => $job->displayName() === IssueDigitalFirAction::class)->count());
+        Assert::assertCount(1, Queue::pushed(ActionJob::class, static fn (ActionJob $job): bool => $job->displayName() === IssueDigitalFirAction::class));
     });
 
     test('un lotto EoW non puo\' viaggiare con FIR', function (): void {

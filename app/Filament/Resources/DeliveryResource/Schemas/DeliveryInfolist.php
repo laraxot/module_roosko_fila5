@@ -40,7 +40,7 @@ class DeliveryInfolist extends XotBaseResourceInfolist
                     'gross_kg' => TextEntry::make('gross_kg')->state(static fn (Delivery $record): ?float => self::weight($record, 'gross_kg'))->numeric(3)->suffix(' kg'),
                     'tare_kg' => TextEntry::make('tare_kg')->state(static fn (Delivery $record): ?float => self::weight($record, 'tare_kg'))->numeric(3)->suffix(' kg'),
                     'net_kg' => TextEntry::make('net_kg')->state(static fn (Delivery $record): ?float => self::weight($record, 'net_kg'))->numeric(3)->suffix(' kg'),
-                    'fir_quantity' => TextEntry::make('fir_quantity')->state(static fn (Delivery $record): ?string => self::fir($record)?->quantity === null ? null : (string) self::fir($record)?->quantity),
+                    'fir_quantity' => TextEntry::make('fir_quantity')->state(static fn (Delivery $record): ?string => self::firQuantity($record)),
                 ]),
             ]),
             'acceptance' => Section::make('acceptance')->schema([
@@ -65,6 +65,13 @@ class DeliveryInfolist extends XotBaseResourceInfolist
         $ewc = $fir === null ? null : EwcCode::query()->find($fir->ewc_code_id);
 
         return $ewc instanceof EwcCode ? $ewc->code.($ewc->is_hazardous ? '*' : '').' — '.$ewc->description : null;
+    }
+
+    private static function firQuantity(Delivery $delivery): ?string
+    {
+        $fir = self::fir($delivery);
+
+        return $fir === null || $fir->quantity === null ? null : (string) $fir->quantity;
     }
 
     private static function weight(Delivery $delivery, string $attribute): ?float

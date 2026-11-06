@@ -17,6 +17,7 @@ use Modules\Roosko\Filament\Customer\Resources\CustomerSiteResource;
 use Modules\Roosko\Models\Delivery;
 use Modules\Roosko\Tests\Support\PlantFixture;
 use Modules\Roosko\Tests\TestCase;
+use Modules\Xot\Actions\Cast\SafeIntCastAction;
 use Modules\User\Models\Tenant;
 use Modules\Waste\Models\Fir;
 use Modules\Waste\Models\Operator;
@@ -57,7 +58,7 @@ function customerOperator(Tenant $tenant, string $name): Operator
  */
 function visibleIds(string $resource): array
 {
-    return array_values(array_map(intval(...), $resource::getEloquentQuery()->pluck('id')->all()));
+    return array_values(array_map(static fn (mixed $id): int => SafeIntCastAction::cast($id), $resource::getEloquentQuery()->pluck('id')->all()));
 }
 
 beforeEach(function (): void {

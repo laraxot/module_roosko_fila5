@@ -225,12 +225,17 @@ class OperatorScanPage extends XotBasePage
             ->color('primary')
             ->schema([
                 'shipment_id' => Select::make('shipment_id')
-                    ->options(fn (): array => Shipment::query()
-                        ->where('warehouse_id', $this->unit()?->warehouse_id ?? 0)
-                        ->whereIn('status', [ShipmentStatusEnum::DRAFT->value, ShipmentStatusEnum::LOADING->value, ShipmentStatusEnum::READY->value])
-                        ->orderByDesc('id')
-                        ->pluck('code', 'id')
-                        ->all())
+                    ->options(function (): array {
+                        $unit = $this->unit();
+                        $warehouseId = $unit instanceof StockUnit ? $unit->warehouse_id : 0;
+
+                        return Shipment::query()
+                            ->where('warehouse_id', $warehouseId)
+                            ->whereIn('status', [ShipmentStatusEnum::DRAFT->value, ShipmentStatusEnum::LOADING->value, ShipmentStatusEnum::READY->value])
+                            ->orderByDesc('id')
+                            ->pluck('code', 'id')
+                            ->all();
+                    })
                     ->required(),
             ])
             ->action(function (array $data): void {

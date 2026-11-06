@@ -27,13 +27,30 @@ function acceptanceData(float $acceptedKg, array $unitsKg, float $rejectedKg = 0
     );
 }
 
+/**
+ * @param array<array-key, mixed> $unitsKg
+ * @return list<float>
+ */
+function normalizedUnitWeights(array $unitsKg): array
+{
+    $weights = [];
+    foreach ($unitsKg as $weight) {
+        if (! is_int($weight) && ! is_float($weight)) {
+            throw new \InvalidArgumentException('Dataset unit weight must be numeric.');
+        }
+        $weights[] = (float) $weight;
+    }
+
+    return $weights;
+}
+
 describe('DeliveryAcceptanceData', function (): void {
     test('somma le unita\' arrotondando ai grammi', function (): void {
         Assert::assertSame(1000.0, acceptanceData(1000.0, [333.3333, 333.3333, 333.3334])->unitsTotalKg());
     });
 
     test('tolleranza di 1 g sui kg accettati', function (float $acceptedKg, array $unitsKg, bool $matches): void {
-        Assert::assertSame($matches, acceptanceData($acceptedKg, $unitsKg)->unitsMatchAcceptedKg());
+        Assert::assertSame($matches, acceptanceData($acceptedKg, normalizedUnitWeights($unitsKg))->unitsMatchAcceptedKg());
     })->with([
         'esatto' => [2000.0, [1200.0, 800.0], true],
         'entro tolleranza' => [2000.0, [1200.0, 800.001], true],
