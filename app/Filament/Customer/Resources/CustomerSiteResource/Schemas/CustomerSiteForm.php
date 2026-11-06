@@ -12,12 +12,15 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Modules\Geo\Filament\Resources\AddressResource\Schemas\AddressForm;
 use Modules\Roosko\Actions\GetCustomerOperatorIdsAction;
+use Modules\Roosko\Actions\IsSiteRegistrationLockedAction;
 use Modules\Waste\Models\Operator;
+use Modules\Waste\Models\OperatorSite;
 use Modules\Xot\Filament\Resources\Schemas\XotBaseResourceForm;
 
 /**
  * Cantiere del cliente: nome, numero di iscrizione RENTRI dell'unita' locale, attivo, indirizzo
- * (Address di Geo tramite HasAddress, come il form di Waste).
+ * (Address di Geo tramite HasAddress, come il form di Waste). Il numero RENTRI e' un dato
+ * regolatorio: modificabile solo finche' nessun FIR indica il cantiere.
  *
  * Il soggetto si sceglie solo in creazione e solo se il cliente ne ha piu' d'uno, fra i suoi;
  * con un solo soggetto il campo non c'e' e lo assegna il server (CreateCustomerSite).
@@ -38,7 +41,10 @@ class CustomerSiteForm extends XotBaseResourceForm
                 ->visible(static fn (string $operation): bool => $operation === 'create' && \count(self::operatorOptions()) > 1)
                 ->required(),
             'name' => TextInput::make('name')->required()->maxLength(255),
-            'rentri_site_number' => TextInput::make('rentri_site_number')->maxLength(255),
+            'rentri_site_number' => TextInput::make('rentri_site_number')
+                ->maxLength(255)
+                ->disabled(static fn (?OperatorSite $record): bool => self::registrationLocked($record))
+                ->dehydrated(static fn (?OperatorSite $record): bool => ! self::registrationLocked($record)),
             'is_active' => Toggle::make('is_active')->default(true),
             'address' => Section::make('address')
                 ->relationship('address')
@@ -47,6 +53,15 @@ class CustomerSiteForm extends XotBaseResourceForm
                 ->columns(2)
                 ->columnSpanFull(),
         ];
+    }
+
+    /**
+     * Numero RENTRI in sola lettura quando un FIR indica gia' il cantiere (IsSiteRegistrationLockedAction);
+     * EditCustomerSite lo ricontrolla lato server.
+     */
+    public static function registrationLocked(?OperatorSite $record): bool
+    {
+        return $record instanceof OperatorSite && app(IsSiteRegistrationLockedAction::class)->execute($record);
     }
 
     /**

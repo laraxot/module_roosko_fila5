@@ -15,6 +15,10 @@ use Spatie\QueueableAction\QueueableAction;
  * si filtrano tutti da questi id (`operators.tenant_id` e' l'unica fonte del legame).
  *
  * Senza cliente (`null`) restituisce una lista vuota: le query che la usano non vedono nulla.
+ *
+ * Memoizzata per richiesta (`once()` su classe e chiave del cliente): lo scope delle resource
+ * del pannello cliente la chiama per ogni record (autorizzazione, link, badge), senza memo
+ * erano una o piu' query per riga (audit database R12).
  */
 class GetCustomerOperatorIdsAction
 {
@@ -29,8 +33,22 @@ class GetCustomerOperatorIdsAction
             return [];
         }
 
-        $ids = Operator::query()->ofTenant($tenant)->orderBy('id')->pluck('id')->all();
+        return self::forTenant($tenant);
+    }
 
-        return array_values(array_map(SafeIntCastAction::cast(...), $ids));
+    /**
+     * Metodo statico: `once()` memorizza sull'istanza Once della richiesta (non sull'action, che
+     * il container ricrea a ogni `app()`), con chiave = istanza del cliente (Filament::getTenant()
+     * restituisce la stessa istanza per tutta la richiesta).
+     *
+     * @return list<int>
+     */
+    private static function forTenant(Model $tenant): array
+    {
+        return once(static function () use ($tenant): array {
+            $ids = Operator::query()->ofTenant($tenant)->orderBy('id')->pluck('id')->all();
+
+            return array_values(array_map(SafeIntCastAction::cast(...), $ids));
+        });
     }
 }

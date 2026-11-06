@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Roosko\Actions;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Modules\Roosko\Models\Delivery;
 use Modules\Waste\Models\Fir;
 use Modules\Waste\Models\OperatorSite;
@@ -20,9 +22,11 @@ use Spatie\QueueableAction\QueueableAction;
  * un'altra) non entra nei totali di nessuno dei due, invece di attribuire a un cliente i kg
  * conferiti da un'altra impresa.
  *
- * FIR (connessione `waste`) e conferimenti (connessione `roosko`) possono stare su database
- * diversi: query separate, niente join tra moduli; la somma la fa il database (`SUM ... GROUP BY`),
- * non PHP sui singoli conferimenti. Gli id dei cantieri arrivano gia' filtrati per cliente.
+ * Con i moduli sullo stesso database (stessa istanza di connessione, alias del modulo Tenant)
+ * e' UNA query aggregata (join conferimenti → FIR → cantieri, `SUM ... GROUP BY` cantiere), per
+ * tutti i cantieri chiesti insieme: le tabelle la chiamano una volta per pagina, non per riga
+ * (audit database R12). Con database separati: query separate per connessione, somma nel database
+ * per FIR. Gli id dei cantieri arrivano gia' filtrati per cliente; somme arrotondate ai grammi.
  */
 class GetCustomerSiteDeliveredKgAction
 {
@@ -38,6 +42,11 @@ class GetCustomerSiteDeliveredKgAction
         $totals = array_fill_keys($siteIds, 0.0);
         if ($siteIds === []) {
             return $totals;
+        }
+
+        $connection = (new Delivery)->getConnection();
+        if ($connection === (new Fir)->getConnection() && $connection === (new OperatorSite)->getConnection()) {
+            return $this->singleQuery($totals, $siteIds, $since);
         }
 
         /** @var array<int, int> $operatorBySite id cantiere => id soggetto titolare */
@@ -74,7 +83,42 @@ class GetCustomerSiteDeliveredKgAction
         foreach ($query->toBase()->pluck('kg', 'fir_id') as $firId => $kg) {
             $siteId = $siteByFir[(int) $firId] ?? null;
             if ($siteId !== null && is_numeric($kg)) {
-                $totals[$siteId] += (float) $kg;
+                $totals[$siteId] = round($totals[$siteId] + (float) $kg, 3);
+            }
+        }
+
+        return $totals;
+    }
+
+    /**
+     * @param  array<int, float>  $totals
+     * @param  list<int>  $siteIds
+     * @return array<int, float>
+     */
+    private function singleQuery(array $totals, array $siteIds, ?CarbonInterface $since): array
+    {
+        $deliveries = (new Delivery)->getTable();
+        $firs = (new Fir)->getTable();
+        $sites = (new OperatorSite)->getTable();
+        $grammar = (new Delivery)->getConnection()->getQueryGrammar();
+
+        $rows = Delivery::query()
+            ->join($firs, $firs.'.id', '=', $deliveries.'.fir_id')
+            ->join($sites, static fn (JoinClause $join): JoinClause => $join
+                ->on($sites.'.id', '=', $firs.'.producer_site_id')
+                ->on($sites.'.operator_id', '=', $firs.'.producer_operator_id'))
+            ->whereIn($sites.'.id', $siteIds)
+            ->whereNotNull($deliveries.'.accepted_kg')
+            ->when($since instanceof CarbonInterface, static fn (Builder $query): Builder => $query->where($deliveries.'.arrived_at', '>=', $since))
+            ->groupBy($sites.'.id')
+            ->select($sites.'.id as site_id')
+            ->selectRaw('SUM('.$grammar->wrap($deliveries.'.accepted_kg').') as kg')
+            ->toBase()
+            ->pluck('kg', 'site_id');
+
+        foreach ($rows as $siteId => $kg) {
+            if (is_numeric($kg) && \array_key_exists((int) $siteId, $totals)) {
+                $totals[(int) $siteId] = round((float) $kg, 3);
             }
         }
 

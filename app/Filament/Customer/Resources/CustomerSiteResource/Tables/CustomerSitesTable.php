@@ -14,13 +14,15 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Modules\Roosko\Actions\GetCustomerSiteDeliveredKgAction;
+use Modules\Roosko\Filament\Customer\Resources\CustomerSiteResource;
 use Modules\Waste\Models\OperatorSite;
 use Modules\Xot\Filament\Resources\Tables\XotBaseResourceTable;
 
 /**
  * La creazione sta nell'intestazione della pagina (XotBaseListRecords), non della tabella.
  * I kg conferiti sono la somma dei kg accettati dei conferimenti col FIR del cantiere
- * (GetCustomerSiteDeliveredKgAction): calcolati, quindi non ordinabili.
+ * (GetCustomerSiteDeliveredKgAction): calcolati, quindi non ordinabili. Una sola query aggregata
+ * per tutti i cantieri del cliente, memorizzata per richiesta: non una per riga (audit R12).
  */
 class CustomerSitesTable extends XotBaseResourceTable
 {
@@ -35,9 +37,23 @@ class CustomerSitesTable extends XotBaseResourceTable
             'address' => TextColumn::make('address.full_address')->wrap()->toggleable(),
             'is_active' => IconColumn::make('is_active')->boolean(),
             'delivered_kg' => TextColumn::make('delivered_kg')
-                ->state(static fn (OperatorSite $record): float => app(GetCustomerSiteDeliveredKgAction::class)->execute([$record->id])[$record->id] ?? 0.0)
+                ->state(static fn (OperatorSite $record): float => self::deliveredKg()[$record->id] ?? 0.0)
                 ->numeric(3),
         ];
+    }
+
+    /**
+     * Kg per cantiere di tutti i cantieri del cliente (insieme limitato), una volta per richiesta.
+     *
+     * @return array<int, float>
+     */
+    public static function deliveredKg(): array
+    {
+        return once(static function (): array {
+            $siteIds = array_values(array_map(intval(...), CustomerSiteResource::getEloquentQuery()->pluck('id')->all()));
+
+            return app(GetCustomerSiteDeliveredKgAction::class)->execute($siteIds);
+        });
     }
 
     /**
