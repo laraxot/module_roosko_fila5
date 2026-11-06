@@ -12,8 +12,10 @@ use Modules\Roosko\Actions\ReceiveDeliveryAction;
 use Modules\Roosko\Filament\Actions\Concerns\NotifiesDomainErrors;
 use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
 use Modules\Roosko\Filament\Resources\DeliveryResource;
+use Modules\Roosko\Enums\DeliveryStatusEnum;
 use Modules\Roosko\Models\Delivery;
 use Modules\Warehouse\Models\Warehouse;
+use Modules\Waste\Enums\FirStatusEnum;
 use Modules\Waste\Models\Fir;
 use Modules\Waste\Models\OperatorSite;
 use Modules\Weighing\Models\Scale;
@@ -98,17 +100,38 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
     }
 
     /**
-     * FIR non ancora conferiti (o solo respinti), piu' recenti per primi: id => numero.
+     * FIR conferibili, piu' recenti per primi: id => numero.
+     *
+     * Solo FIR non in stato finale (bozza, emesso, in viaggio, consegnato) destinati a un impianto
+     * attivo (sito di destino, o in mancanza soggetto destinatario titolare di un impianto: cosi'
+     * restano fuori i FIR in uscita creati dalle spedizioni), esclusi quelli con un conferimento ancora aperto: i
+     * conferimenti aperti sono il lavoro in corso del piazzale (insieme limitato), non la storia
+     * (audit database R5). ReceiveDeliveryAction ricontrolla tutto sotto lock.
      *
      * @return array<int, string>
      */
     private static function firOptions(): array
     {
-        $received = Delivery::query()->where('status', '!=', 'rejected')->pluck('fir_id')->all();
+        $openStatuses = array_map(static fn (DeliveryStatusEnum $status): string => $status->value, array_filter(
+            DeliveryStatusEnum::cases(),
+            static fn (DeliveryStatusEnum $status): bool => $status->isOpen(),
+        ));
+        $receivable = array_map(static fn (FirStatusEnum $status): string => $status->value, array_filter(
+            FirStatusEnum::cases(),
+            static fn (FirStatusEnum $status): bool => ! $status->isFinal(),
+        ));
+
+        $inProgress = Delivery::query()->whereIn('status', array_values($openStatuses))->pluck('fir_id')->all();
 
         /** @var Collection<int, Fir> $firs */
         $firs = Fir::query()
-            ->whereNotIn('id', $received)
+            ->whereIn('status', array_values($receivable))
+            ->whereNotIn('id', $inProgress)
+            ->where(static fn (Builder $query): Builder => $query
+                ->whereIn('recipient_site_id', self::plantSites()->select('id'))
+                ->orWhere(static fn (Builder $query): Builder => $query
+                    ->whereNull('recipient_site_id')
+                    ->whereIn('recipient_operator_id', self::plantSites()->select('operator_id'))))
             ->orderByDesc('id')
             ->limit(200)
             ->get();
@@ -116,5 +139,13 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
         return $firs
             ->mapWithKeys(static fn (Fir $fir): array => [$fir->id => (string) ($fir->number ?? '#'.$fir->id)])
             ->all();
+    }
+
+    /**
+     * @return Builder<OperatorSite>
+     */
+    private static function plantSites(): Builder
+    {
+        return OperatorSite::query()->where('is_plant', true)->where('is_active', true);
     }
 }

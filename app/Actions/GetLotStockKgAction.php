@@ -15,8 +15,10 @@ use Spatie\QueueableAction\QueueableAction;
  * Kg di un codice EER presenti nelle aree indicate (unita' `pending|stored|reserved` con
  * posizione, stesso criterio di carico di Warehouse) con un lotto Roosko come contenuto.
  *
- * Due query su connessioni diverse (lotti su `roosko`, unita' su `warehouse`): niente join
- * tra moduli.
+ * Si parte dalle unita' che occupano le posizioni delle aree (insieme limitato dalla giacenza
+ * fisica attuale), non dai lotti dell'EER: i lotti storici (consumati, spediti) crescono senza
+ * limite e finivano tutti in un `whereIn` (audit database R5). Poi si tengono i lotti dell'EER
+ * fra quelli delle unita' trovate (WhereInModuleQueryAction: subquery con lo stesso database).
  */
 class GetLotStockKgAction
 {
@@ -31,25 +33,24 @@ class GetLotStockKgAction
             return 0.0;
         }
 
-        $lotIds = WasteLot::query()->where('ewc_code_id', $ewcCodeId)->pluck('id')->all();
-        if ($lotIds === []) {
-            return 0.0;
-        }
-
-        $locationIds = Location::query()->whereIn('area_id', $areaIds)->pluck('id')->all();
-
-        /** @var Builder<StockUnit> $query */
-        $query = StockUnit::query()
+        $units = StockUnit::query()
             ->where('subject_type', (new WasteLot)->getMorphClass())
-            ->whereIn('subject_id', $lotIds)
-            ->whereIn('location_id', $locationIds)
-            ->whereIn('status', self::occupyingStatuses());
+            ->whereIn('location_id', Location::query()->select('id')->whereIn('area_id', $areaIds))
+            ->whereIn('status', self::occupyingStatuses())
+            ->when($exceptUnitId !== null, static fn (Builder $query): Builder => $query->whereKeyNot($exceptUnitId));
 
-        if ($exceptUnitId !== null) {
-            $query->whereKeyNot($exceptUnitId);
-        }
+        $lots = app(WhereInModuleQueryAction::class)->execute(
+            WasteLot::query()->where('ewc_code_id', $ewcCodeId),
+            'id',
+            $units,
+            'subject_id',
+        );
 
-        $sum = $query->sum('net_weight_kg');
+        $sum = app(WhereInModuleQueryAction::class)->execute(
+            $units,
+            'subject_id',
+            $lots,
+        )->sum('net_weight_kg');
 
         return round(is_numeric($sum) ? (float) $sum : 0.0, 3);
     }
