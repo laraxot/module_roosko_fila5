@@ -44,6 +44,7 @@ class AcceptDeliveryHeaderAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-check-badge')
+            ->authorize('accept')
             ->color('success')
             ->modalWidth('4xl')
             ->modalHeading(static fn (Delivery $record): string => static::transAction('modal_heading', ['code' => $record->code]))

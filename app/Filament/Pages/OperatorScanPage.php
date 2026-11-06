@@ -46,6 +46,10 @@ use Modules\Xot\Filament\Pages\XotBasePage;
  * Stato tra le richieste: solo id (locked, non modificabili dal client) e la fase "attendo la
  * posizione" per lo stoccaggio a due scansioni; unita' e posizione si rileggono a ogni richiesta.
  * Tutte le operazioni chiamano le Actions di dominio.
+ *
+ * Autorizzazione: la pagina richiede `waste_lot.viewAny`; ogni operazione controlla l'abilita'
+ * di WasteLotPolicy (store, treat, reprintLabel, adjustWeight) o di ShipmentPolicy (load) sul
+ * lotto/uscita interessati, sia per mostrare il bottone sia prima di eseguire.
  */
 class OperatorScanPage extends XotBasePage
 {
@@ -59,6 +63,11 @@ class OperatorScanPage extends XotBasePage
     protected string $view = 'roosko::filament.pages.operator-scan';
 
     public string $scan = '';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('viewAny', WasteLot::class) ?? false;
+    }
 
     #[Locked]
     public ?int $unitId = null;
@@ -124,7 +133,7 @@ class OperatorScanPage extends XotBasePage
     /** "Stocca/Sposta": la prossima scansione e' la posizione di destinazione. */
     public function startStore(): void
     {
-        if ($this->unit() instanceof StockUnit) {
+        if ($this->unit() instanceof StockUnit && $this->allows('store')) {
             $this->awaiting = 'location';
         }
     }
@@ -215,6 +224,7 @@ class OperatorScanPage extends XotBasePage
                     );
                 }, 'treatment_started', ['code' => $unit->code]);
             })
+            ->authorize(fn (): bool => $this->allows('treat'))
             ->visible(fn (): bool => $this->unit()?->status === StockUnitStatusEnum::STORED);
     }
 
@@ -244,13 +254,19 @@ class OperatorScanPage extends XotBasePage
                     return;
                 }
                 $shipment = Shipment::query()->findOrFail(SafeIntCastAction::cast($data['shipment_id'] ?? null));
+                if (! (auth()->user()?->can('load', $shipment) ?? false)) {
+                    $this->notify('danger', 'notifications.forbidden');
+
+                    return;
+                }
                 $this->runOperation(
                     static fn () => app(AddShipmentItemAction::class)->execute($shipment, $unit),
                     'added_to_shipment',
                     ['code' => $unit->code, 'shipment' => $shipment->code],
                 );
             })
-            ->visible(fn (): bool => \in_array($this->unit()?->status, [StockUnitStatusEnum::STORED, StockUnitStatusEnum::RESERVED], true));
+            ->authorize(fn (): bool => auth()->user()?->can('viewAny', Shipment::class) ?? false)
+            ->visible(fn (): bool => $this->unit()?->status === StockUnitStatusEnum::STORED);
     }
 
     public function reprintLabelAction(): Action
@@ -269,6 +285,7 @@ class OperatorScanPage extends XotBasePage
                 $copies = SafeIntCastAction::cast($data['copies'] ?? 1, 1);
                 $this->runOperation(static fn () => app(QueueUnitLabelAction::class)->execute($unit, $copies), 'label_queued', ['code' => $unit->code]);
             })
+            ->authorize(fn (): bool => $this->allows('reprintLabel'))
             ->visible(fn (): bool => $this->unit() instanceof StockUnit);
     }
 
@@ -295,6 +312,7 @@ class OperatorScanPage extends XotBasePage
                     ['code' => $unit->code],
                 );
             })
+            ->authorize(fn (): bool => $this->allows('adjustWeight'))
             ->visible(fn (): bool => \in_array($this->unit()?->status, [StockUnitStatusEnum::STORED, StockUnitStatusEnum::RESERVED, StockUnitStatusEnum::PENDING], true));
     }
 
@@ -308,11 +326,26 @@ class OperatorScanPage extends XotBasePage
         }
 
         $this->awaiting = null;
+        if (! $this->allows('store')) {
+            $this->notify('danger', 'notifications.forbidden');
+
+            return;
+        }
         $this->runOperation(
             static fn () => app(StoreLotAction::class)->execute($unit, $resolved),
             'stored',
             ['code' => $unit->code, 'location' => $resolved->code],
         );
+    }
+
+    /**
+     * Abilita' di WasteLotPolicy sul lotto dell'unita' corrente (false senza lotto o senza utente).
+     */
+    public function allows(string $ability): bool
+    {
+        $lot = $this->lot();
+
+        return $lot instanceof WasteLot && (auth()->user()?->can($ability, $lot) ?? false);
     }
 
     /**

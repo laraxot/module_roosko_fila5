@@ -41,6 +41,7 @@ class CreateShipmentHeaderAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-truck')
+            ->authorize('create')
             ->color('primary')
             ->modalHeading(static fn (): string => static::transAction('modal_heading'))
             ->schema([

@@ -7,9 +7,12 @@ namespace Modules\Roosko\Models\Policies;
 use Modules\Roosko\Models\AreaWasteRule;
 use Modules\User\Models\Policies\UserBasePolicy;
 use Modules\Xot\Contracts\UserContract;
+use Modules\Xot\Models\Policies\Concerns\DeniesUndeclaredFilamentAbilities;
 
 class AreaWasteRulePolicy extends UserBasePolicy
 {
+    use DeniesUndeclaredFilamentAbilities;
+
     #[\Override]
     public function viewAny(UserContract $user): bool
     {

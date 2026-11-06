@@ -33,6 +33,7 @@ class RejectDeliveryHeaderAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-x-circle')
+            ->authorize('reject')
             ->color('danger')
             ->requiresConfirmation()
             ->modalHeading(static fn (Delivery $record): string => static::transAction('modal_heading', ['code' => $record->code]))

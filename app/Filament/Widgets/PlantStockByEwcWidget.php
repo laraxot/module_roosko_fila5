@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Widgets;
 
+use Modules\Roosko\Models\WasteLot;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -19,6 +20,11 @@ use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
  */
 class PlantStockByEwcWidget extends XotBaseTableWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('viewAny', WasteLot::class) ?? false;
+    }
+
     protected static ?int $sort = 1;
 
     protected int|string|array $columnSpan = 'full';

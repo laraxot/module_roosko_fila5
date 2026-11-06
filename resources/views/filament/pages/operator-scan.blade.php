@@ -107,9 +107,12 @@
                 </dl>
 
                 <div class="roosko-op-actions">
-                    <x-filament::button icon="heroicon-o-map-pin" wire:click="startStore" :disabled="$awaiting === 'location'">
-                        {{ $unit->location_id ? $t('actions.move') : $t('actions.store') }}
-                    </x-filament::button>
+                    {{-- Stocca/Sposta: solo unita' in giacenza libere (non riservate su un'uscita) e con l'abilita' `store`. --}}
+                    @if (in_array($unit->status, [\Modules\Warehouse\Enums\StockUnitStatusEnum::PENDING, \Modules\Warehouse\Enums\StockUnitStatusEnum::STORED], true) && $this->allows('store'))
+                        <x-filament::button icon="heroicon-o-map-pin" wire:click="startStore" :disabled="$awaiting === 'location'">
+                            {{ $unit->location_id ? $t('actions.move') : $t('actions.store') }}
+                        </x-filament::button>
+                    @endif
                     @if ($this->startTreatmentAction->isVisible()) {{ $this->startTreatmentAction }} @endif
                     @if ($this->addToShipmentAction->isVisible()) {{ $this->addToShipmentAction }} @endif
                     @if ($this->reprintLabelAction->isVisible()) {{ $this->reprintLabelAction }} @endif

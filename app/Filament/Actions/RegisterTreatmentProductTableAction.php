@@ -50,6 +50,7 @@ class RegisterTreatmentProductTableAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-plus-circle')
+            ->authorize('registerOutput')
             ->color('success')
             ->button()
             ->modalWidth('3xl')

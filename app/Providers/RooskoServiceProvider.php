@@ -22,6 +22,17 @@ class RooskoServiceProvider extends XotBaseServiceProvider
         parent::boot();
 
         $this->registerPlacementGuard();
+        $this->disableNativeProcessingMaterialActions();
+    }
+
+    /**
+     * In Roosko il materiale di un trattamento passa solo dalle actions di Roosko (scarico di
+     * registro, autorizzazione, lotto e QR): si spengono "Aggiungi input" e "Registra output"
+     * del pannello Processing (punto di estensione `processing.material_actions_enabled`).
+     */
+    private function disableNativeProcessingMaterialActions(): void
+    {
+        config(['processing.material_actions_enabled' => false]);
     }
 
     #[Override]

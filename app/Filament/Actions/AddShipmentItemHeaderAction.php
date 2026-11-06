@@ -45,6 +45,7 @@ class AddShipmentItemHeaderAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-qr-code')
+            ->authorize(fn (): bool => $this->shipment instanceof Shipment && (auth()->user()?->can('load', $this->shipment) ?? false))
             ->color('primary')
             ->modalHeading(static fn (): string => static::transAction('modal_heading'))
             ->schema([

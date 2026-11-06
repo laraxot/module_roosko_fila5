@@ -7,9 +7,15 @@ namespace Modules\Roosko\Models\Policies;
 use Modules\Roosko\Models\Delivery;
 use Modules\User\Models\Policies\UserBasePolicy;
 use Modules\Xot\Contracts\UserContract;
+use Modules\Xot\Models\Policies\Concerns\DeniesUndeclaredFilamentAbilities;
 
+/**
+ * Abilita' dei conferimenti. `create` = "Registra arrivo" (ReceiveDeliveryHeaderAction).
+ */
 class DeliveryPolicy extends UserBasePolicy
 {
+    use DeniesUndeclaredFilamentAbilities;
+
     #[\Override]
     public function viewAny(UserContract $user): bool
     {
@@ -35,5 +41,23 @@ class DeliveryPolicy extends UserBasePolicy
     public function delete(UserContract $user, Delivery $delivery): bool
     {
         return $delivery->status->isOpen() && $user->hasPermissionTo('delivery.delete');
+    }
+
+    /** Pesata della tara (WeighDeliveryTareHeaderAction): solo conferimenti ancora aperti. */
+    public function weigh(UserContract $user, Delivery $delivery): bool
+    {
+        return $delivery->status->isOpen() && $user->hasPermissionTo('delivery.weigh');
+    }
+
+    /** Accettazione totale o parziale con unita' (AcceptDeliveryHeaderAction): scrive sul registro. */
+    public function accept(UserContract $user, Delivery $delivery): bool
+    {
+        return $delivery->status->isOpen() && $user->hasPermissionTo('delivery.accept');
+    }
+
+    /** Respingimento integrale (RejectDeliveryHeaderAction). */
+    public function reject(UserContract $user, Delivery $delivery): bool
+    {
+        return $delivery->status->isOpen() && $user->hasPermissionTo('delivery.reject');
     }
 }

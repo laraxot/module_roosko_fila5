@@ -43,6 +43,7 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-arrow-down-tray')
+            ->authorize('create')
             ->color('primary')
             ->modalHeading(static fn (): string => static::transAction('modal_heading'))
             ->modalDescription(static fn (): string => static::transAction('modal_description'))

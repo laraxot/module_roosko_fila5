@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Widgets;
 
+use Modules\Roosko\Models\WasteLot;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Modules\Roosko\Actions\GetPlantStockSummaryAction;
 use Modules\Roosko\Datas\StockSummaryRowData;
@@ -16,6 +17,11 @@ use Modules\Xot\Filament\Widgets\XotBaseStatsOverviewWidget;
  */
 class AuthorizationUsageWidget extends XotBaseStatsOverviewWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('viewAny', WasteLot::class) ?? false;
+    }
+
     protected static ?int $sort = 2;
 
     /** Quante stat mostrare al massimo (le piu' critiche). */

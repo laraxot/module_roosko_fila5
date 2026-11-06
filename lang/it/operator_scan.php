@@ -53,6 +53,7 @@ return [
         'reason' => ['label' => 'Motivo'],
     ],
     'notifications' => [
+        'forbidden' => 'Non hai il permesso per questa operazione',
         'error' => 'Operazione non eseguita',
         'stored' => 'Unità :code in :location',
         'treatment_started' => 'Trattamento avviato con :code',

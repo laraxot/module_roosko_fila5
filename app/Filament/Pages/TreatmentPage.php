@@ -27,6 +27,12 @@ class TreatmentPage extends XotBasePage implements HasTable
 {
     use InteractsWithTable;
 
+    /** Lavorazioni in corso: chi vede gli ordini di lavorazione (le azioni hanno abilita' proprie). */
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('viewAny', ProcessingOrder::class) ?? false;
+    }
+
     /** @var class-string<ProcessingOrder> */
     public static ?string $model = ProcessingOrder::class;
 

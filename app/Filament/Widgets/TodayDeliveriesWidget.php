@@ -17,6 +17,11 @@ use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
  */
 class TodayDeliveriesWidget extends XotBaseTableWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('viewAny', Delivery::class) ?? false;
+    }
+
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 'full';

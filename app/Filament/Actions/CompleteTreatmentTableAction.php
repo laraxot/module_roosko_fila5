@@ -35,16 +35,20 @@ class CompleteTreatmentTableAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-check-circle')
+            ->authorize('complete')
             ->color('primary')
             ->button()
             ->requiresConfirmation()
             ->modalHeading(static fn (ProcessingOrder $record): string => static::transAction('modal_heading', ['code' => $record->code]))
             ->modalDescription(static fn (): string => static::transAction('modal_description'))
             ->schema([
-                'force' => Toggle::make('force')->default(false),
+                'force' => Toggle::make('force')
+                    ->default(false)
+                    ->visible(static fn (ProcessingOrder $record): bool => auth()->user()?->can('forceComplete', $record) ?? false),
             ])
             ->action(function (array $data, ProcessingOrder $record): void {
-                $force = SafeBooleanCastAction::cast($data['force'] ?? false);
+                // La chiusura forzata (perdita oltre soglia) e' del responsabile: ricontrollata qui, non solo nel form.
+                $force = SafeBooleanCastAction::cast($data['force'] ?? false) && (auth()->user()?->can('forceComplete', $record) ?? false);
                 $this->runDomainAction(
                     static fn (): ProcessingOrder => app(CompleteTreatmentAction::class)->execute($record, $force),
                     static::transAction('success', ['code' => $record->code]),

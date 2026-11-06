@@ -53,6 +53,7 @@ return [
         'reason' => ['label' => 'Reason'],
     ],
     'notifications' => [
+        'forbidden' => 'You are not allowed to do this',
         'error' => 'Operation not performed',
         'stored' => 'Unit :code in :location',
         'treatment_started' => 'Treatment started with :code',

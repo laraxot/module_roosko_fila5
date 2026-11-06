@@ -33,6 +33,7 @@ class DispatchShipmentHeaderAction extends XotBaseAction
         $this->icon('heroicon-o-paper-airplane')
             ->color('success')
             ->requiresConfirmation()
+            ->authorize('dispatch')
             ->modalHeading(static fn (Shipment $record): string => static::transAction('modal_heading', ['code' => $record->code]))
             ->modalDescription(static fn (Shipment $record): string => static::transAction('modal_description', [
                 'count' => $record->items()->count(),

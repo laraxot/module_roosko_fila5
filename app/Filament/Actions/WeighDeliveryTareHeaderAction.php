@@ -33,6 +33,7 @@ class WeighDeliveryTareHeaderAction extends XotBaseAction
         parent::setUp();
 
         $this->icon('heroicon-o-scale')
+            ->authorize('weigh')
             ->color('gray')
             ->modalHeading(static fn (Delivery $record): string => static::transAction('modal_heading', ['code' => $record->code]))
             ->schema([
