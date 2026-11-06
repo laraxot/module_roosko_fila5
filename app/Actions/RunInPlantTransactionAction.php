@@ -29,10 +29,18 @@ use Spatie\QueueableAction\QueueableAction;
  * dentro l'altra: un errore prima del commit annulla tutto, un errore durante i commit esterni
  * no (niente 2PC, atomicita' best-effort; la piu' interna, Waste, committa per prima).
  * RENTRI e stampa non entrano: si accodano dopo il commit.
+ *
+ * La transazione piu' esterna si ritenta fino a ATTEMPTS volte su deadlock o errore di
+ * serializzazione (Connection::transaction ritenta solo al livello 1): le actions annidate (es.
+ * numerazione dei ticket di pesata con upsert) non possono ritentare dentro una transazione
+ * aperta da qui. Il callback deve quindi essere rieseguibile: tutto cio' che scrive passa dal
+ * database (rollback completo), gli effetti esterni (code, RENTRI) stanno fuori.
  */
 class RunInPlantTransactionAction
 {
     use QueueableAction;
+
+    public const int ATTEMPTS = 3;
 
     /**
      * @template TReturn
@@ -49,11 +57,18 @@ class RunInPlantTransactionAction
             $connections[spl_object_id($connection)] ??= $connection;
         }
 
+        $ordered = array_values($connections);
+        $outermost = array_shift($ordered);
+
         $wrapped = array_reduce(
-            array_reverse(array_values($connections)),
+            array_reverse($ordered),
             static fn (Closure $inner, Connection $connection): Closure => static fn (): mixed => $connection->transaction($inner),
             $callback,
         );
+        if ($outermost instanceof Connection) {
+            $inner = $wrapped;
+            $wrapped = static fn (): mixed => $outermost->transaction($inner, $outermost->transactionLevel() === 0 ? self::ATTEMPTS : 1);
+        }
 
         /** @var TReturn */
         return $wrapped();

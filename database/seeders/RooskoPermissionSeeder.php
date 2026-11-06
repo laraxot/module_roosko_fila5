@@ -69,7 +69,8 @@ class RooskoPermissionSeeder extends Seeder
 
     /**
      * Ufficio accettazione e pesatura: arrivo, tara, accettazione/respingimento, FIR e soggetti,
-     * uscite (creazione, carico, spedizione, annullamento), rettifica del peso delle unita'.
+     * lettura della bilancia e annullo delle pesate, uscite (creazione, carico, spedizione,
+ * annullamento), rettifica del peso delle unita'.
      */
     private const array ACCEPTANCE_PERMISSIONS = [
         'delivery' => ['viewAny', 'view', 'create', 'update', 'weigh', 'accept', 'reject'],
@@ -82,8 +83,8 @@ class RooskoPermissionSeeder extends Seeder
         'ewc_code' => ['viewAny', 'view'],
         'register' => ['viewAny', 'view'],
         'register_entry' => ['viewAny', 'view'],
-        'weighing' => ['viewAny', 'view', 'create', 'update'],
-        'scale' => ['viewAny', 'view'],
+        'weighing' => ['viewAny', 'view', 'create', 'update', 'void'],
+        'scale' => ['viewAny', 'view', 'readScale'],
         'stock_unit' => ['viewAny', 'view'],
         'warehouse' => ['viewAny', 'view'],
         'location' => ['viewAny', 'view'],
