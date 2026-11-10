@@ -13,6 +13,10 @@ Pannello Roosko, gruppo **Impianto**: **Conferimenti**, **Lotti**, **Uscite**.
 
 ## Conferimenti (ingresso)
 
+![Elenco dei conferimenti con stato, FIR e chili accettati.](img/03-conferimenti.png)
+
+*Elenco dei conferimenti con stato, FIR e chili accettati.*
+
 ### 1. Registra arrivo
 
 Pulsante **Registra arrivo**. Si compilano:
@@ -26,6 +30,10 @@ Il conferimento nasce nello stato **Arrivato**.
 
 ### 2. Pesa tara
 
+![Conferimento pesato in attesa di decisione: in alto i pulsanti per accettare o respingere.](img/04-conferimento-pesato.png)
+
+*Conferimento pesato in attesa di decisione: in alto i pulsanti per accettare o respingere.*
+
 A scarico avvenuto, pulsante **Pesa tara**: si inserisce la **Tara** (peso del mezzo vuoto). Il
 netto lo calcola il sistema. Stato: **Pesato**.
 
@@ -34,6 +42,10 @@ netto lo calcola il sistema. Stato: **Pesato**.
 Pulsante **Ispezione**: note di ispezione e la spunta **Analisi richiesta**.
 
 ### 4a. Accetta
+
+![Conferimento accettato: pesata, accettazione e unita' create.](img/05-conferimento-accettato.png)
+
+*Conferimento accettato: pesata, accettazione e unita' create.*
 
 Pulsante **Accetta**. Il carico accettato si divide in **unita'**, cioe' i contenitori fisici:
 
@@ -61,6 +73,10 @@ registro. Il respingimento viene annotato sul FIR e inviato a RENTRI se il FIR e
 
 ## Lotti
 
+![Lotti con classificazione, destino e stato delle unita'.](img/06-lotti.png)
+
+*Lotti con classificazione, destino e stato delle unita'.*
+
 **Lotti** mostra, per ogni unita' accettata o prodotta, il codice EER, la classificazione
 (**Rifiuto**, **End of Waste**, **Sottoprodotto**) e il destino (**Trattamento interno**,
 **Vendita**, **Recupero presso terzi**, **Smaltimento**, **Bonifica**). Dal dettaglio si vede la
@@ -81,3 +97,10 @@ cambiano il destino e i riferimenti End of Waste.
 
 Stati dell'uscita: **Bozza** → **In carico** → **Pronta** → **Spedita** → **Consegnata**
 (oppure **Annullata** prima della partenza).
+
+### Togliere un'unita' o annullare un'uscita
+
+- **Togli**, sulla riga di un'unita' dell'uscita, la toglie dall'uscita e la libera: torna in giacenza
+  e si puo' stoccare o caricare altrove.
+- **Annulla uscita** annulla un'uscita non ancora spedita e libera tutte le unita' caricate. Un'uscita
+  gia' spedita non si annulla: ha generato FIR e scarico di registro.

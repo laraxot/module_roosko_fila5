@@ -11,6 +11,10 @@ updated: 2026-11-05
 
 ## Dashboard impianto
 
+![Dashboard dell'impianto: uso delle autorizzazioni e giacenza per codice EER.](img/01-dashboard-impianto.png)
+
+*Dashboard dell'impianto: uso delle autorizzazioni e giacenza per codice EER.*
+
 La home del pannello Roosko mostra tre riquadri:
 
 - **Uso dei limiti autorizzati**: per ogni codice autorizzato, la giacenza rispetto al limite di
@@ -20,6 +24,10 @@ La home del pannello Roosko mostra tre riquadri:
 - **Conferimenti di oggi**.
 
 ## Lavorazioni in corso
+
+![Lavorazioni in corso con i pulsanti per registrare il prodotto e completare il trattamento.](img/09-lavorazioni-in-corso.png)
+
+*Lavorazioni in corso con i pulsanti per registrare il prodotto e completare il trattamento.*
 
 Menu **Impianto → Lavorazioni in corso**: i trattamenti avviati dal piazzale, con **Ordine**,
 **Macchina**, **Operazione**, **Input (kg)**, **Output registrati (kg)** e ora di **Avvio**.
@@ -35,12 +43,20 @@ Menu **Impianto → Lavorazioni in corso**: i trattamenti avviati dal piazzale, 
 
 ## Regole di stoccaggio
 
+![Regole di stoccaggio: quali codici EER e operazioni sono ammessi in ogni area.](img/13-regole-stoccaggio.png)
+
+*Regole di stoccaggio: quali codici EER e operazioni sono ammessi in ogni area.*
+
 Menu **Autorizzazioni → Regole di stoccaggio**: per ogni **area** del magazzino si indica quali
 codici autorizzati puo' contenere, con quale operazione e con quale limite in kg. Un'area senza
 regole non accetta rifiuti. Queste regole sono quelle che il piazzale si vede applicare alla
 scansione (vedi [Piazzale](piazzale.md)).
 
 ## Rifiuti (pannello `/waste/admin`, gruppo «Rifiuti»)
+
+![Scritture del registro di carico e scarico, con il pulsante Rettifica.](img/11-registro.png)
+
+*Scritture del registro di carico e scarico, con il pulsante Rettifica.*
 
 - **Autorizzazioni impianto**: atti autorizzativi, codici EER autorizzati, operazioni e limiti
   (istantaneo e annuo).
@@ -51,6 +67,18 @@ scansione (vedi [Piazzale](piazzale.md)).
 - **Codici EER**, **Soggetti** (produttori, trasportatori, destinatari) e **Unita' locali**.
 
 ## RENTRI (pannello `/rentri/admin`)
+
+![Dettaglio di un FIR nel pannello Rifiuti.](img/10-fir.png)
+
+*Dettaglio di un FIR: identificazione, soggetti, rifiuto e trasporto.*
+
+**Firma FIR** (elenco *Trasmissioni RENTRI*) firma un FIR digitale con la firma remota RENTRI: si
+inserisce il **PIN di firma** dell'utente della credenziale, che non viene salvato. L'esito arriva
+con la verifica della transazione e compare nella trasmissione.
+
+![Stato dei servizi RENTRI: senza credenziali attive la pagina lo segnala.](img/12-rentri.png)
+
+*Stato dei servizi RENTRI: senza credenziali attive la pagina lo segnala.*
 
 - **Credenziali RENTRI**: certificato e ambiente (demo o produzione) per unita' locale.
 - **Trasmissioni RENTRI**: ogni invio con il suo esito. Le trasmissioni in attesa vengono

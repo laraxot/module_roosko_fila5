@@ -14,6 +14,9 @@ il suo formulario (FIR), viene pesato, accettato e diviso in **unità** con etic
 vengono stoccate nelle posizioni autorizzate, lavorate e poi spedite. Il registro di carico e
 scarico e gli invii RENTRI si scrivono da soli mentre si lavora: non vanno ricopiati in ufficio.
 
+> Le schermate di questo manuale sono prese dall'applicazione vera, avviata con dati di prova
+> (impianto di Ravenna, clienti Edilnova e Officine Romagna). Sono in [`img/`](img/).
+
 ## Chi usa cosa
 
 | Chi | Dove lavora | Capitolo |

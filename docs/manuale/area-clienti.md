@@ -21,6 +21,10 @@ Se non si riesce a entrare, l'account non e' ancora abilitato: va contattato l'i
 
 ## Riepilogo
 
+![Riepilogo del cliente: chili conferiti nel mese per cantiere e ultimi conferimenti.](img/20-cliente-dashboard.png)
+
+*Riepilogo del cliente: chili conferiti nel mese per cantiere e ultimi conferimenti.*
+
 La prima pagina mostra:
 
 - **Conferito nel mese per cantiere**: per ogni cantiere, i kg **Accettati nel mese**.
@@ -29,6 +33,10 @@ La prima pagina mostra:
 ## I miei rifiuti
 
 ### Cantieri
+
+![I cantieri del cliente, con i chili conferiti.](img/21-cliente-cantieri.png)
+
+*I cantieri del cliente, con i chili conferiti.*
 
 L'elenco dei cantieri, con nome, numero di iscrizione RENTRI dell'unita' locale, stato (attivo o
 no) e **Conferiti (kg)** in totale.
@@ -42,6 +50,10 @@ di produzione e la vostra impresa come produttore.
 
 ### Conferimenti
 
+![I conferimenti del cliente, in sola lettura.](img/22-cliente-conferimenti.png)
+
+*I conferimenti del cliente, in sola lettura.*
+
 Ogni carico arrivato in impianto, in sola lettura: **Codice**, **Arrivo**, **FIR**,
 **Cantiere**, **EER**, **Accettati (kg)** e **Stato**. Il dettaglio mostra:
 
@@ -54,6 +66,10 @@ Stati: **Arrivato**, **Pesato**, **In verifica**, **Accettato**, **Accettato par
 **Respinto**, **Chiuso**.
 
 ### Formulari
+
+![I formulari in cui il produttore e' il cliente.](img/23-cliente-formulari.png)
+
+*I formulari in cui il produttore e' il cliente.*
 
 I FIR in cui la vostra impresa e' il produttore, in sola lettura: numero, digitale (xFIR) o no,
 soggetti (produttore, cantiere, trasportatore, destinatario), rifiuto (codice EER e descrizione,

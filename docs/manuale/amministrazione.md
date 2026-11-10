@@ -32,9 +32,22 @@ updated: 2026-11-05
   richiede il ruolo con lo stesso nome del pannello (es. `roosko::admin`); le operazioni dentro
   il pannello richiedono i permessi (es. vedere o creare conferimenti).
 
-> Attenzione: i permessi del personale d'impianto (pesa, operatori) oggi non vengono creati
-> automaticamente. Finche' non ci sono, un utente che non e' super amministratore puo' ricevere
-> un errore invece del normale «accesso negato» (voce B-03 del backlog dell'audit).
+### Ruoli del personale d'impianto
+
+I ruoli e i permessi si creano con i seeder dei moduli (`php artisan module:seed Roosko`, e lo
+stesso per Waste, Warehouse, Processing, Weighing, Labeling, Rentri). A ogni persona si danno **due
+cose**: il ruolo operativo, che dice cosa puo' fare, e i ruoli dei pannelli in cui deve entrare.
+
+| Chi | Ruolo operativo | Ruoli dei pannelli |
+|---|---|---|
+| Operatore di piazzale | `roosko.operator` | `roosko::admin` |
+| Pesa e accettazione | `roosko.acceptance` | `roosko::admin`, `waste::admin`, `weighing::admin` |
+| Responsabile tecnico | `roosko.technical_manager` | `roosko::admin`, `waste::admin`, `warehouse::admin`, `processing::admin`, `labeling::admin`, `weighing::admin`, `rentri::admin` |
+
+Senza il ruolo del pannello il login a quel pannello risponde «I dati di accesso non sono
+corretti», anche con la password giusta: e' il primo controllo da fare quando qualcuno non entra.
+Vale anche per il super amministratore creato a mano, che va abilitato ai pannelli con
+`user:super-admin`.
 
 ## Dare accesso a un cliente all'area clienti
 

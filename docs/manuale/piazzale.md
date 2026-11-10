@@ -15,7 +15,14 @@ come app sul telefono (PWA).
 
 ## Scansionare
 
+![La pagina dell'operatore sul telefono: campo di scansione sempre pronto, tastiera e fotocamera a destra.](img/02-operatore.png)
+
+*La pagina dell'operatore sul telefono: campo di scansione sempre pronto, tastiera e fotocamera a destra.*
+
 - Si usa il **grilletto del palmare** oppure il pulsante **Fotocamera**.
+- Il campo non apre la tastiera del telefono, per non coprire lo schermo a ogni scansione. Per
+  digitare un codice a mano si tocca il pulsante con il simbolo del terminale, accanto al campo: la
+  tastiera resta attiva su quel dispositivo finche' non si tocca di nuovo.
 - Si scansiona **un'unita'** (l'etichetta del contenitore) **o una posizione** (l'etichetta della
   scaffalatura o della baia).
 - «Nuova scansione» svuota la pagina.
@@ -23,6 +30,10 @@ come app sul telefono (PWA).
   ristampata o segnalata all'ufficio.
 
 ### Scansione di un'unita'
+
+![Dopo la scansione di un'unita': dati dell'unita' e azioni consentite al proprio ruolo.](img/02b-operatore-unita.png)
+
+*Dopo la scansione di un'unita': dati dell'unita' e azioni consentite al proprio ruolo.*
 
 Compare la scheda dell'unita': **EER**, **Peso netto**, **Posizione**, **Stato**,
 **Classificazione** e **Destino**. Da qui si puo':
@@ -41,6 +52,10 @@ Compare l'elenco delle **unita' presenti** in quella posizione, oppure *Nessuna 
 posizione*.
 
 ## Stoccare un'unita', passo per passo
+
+![Mappa del magazzino: occupazione delle aree e posizioni sulla planimetria.](img/07-mappa.png)
+
+*La mappa del magazzino (pannello Warehouse) mostra in ufficio dove sono finite le unita'.*
 
 1. Scansionare l'unita'.
 2. Premere **Stocca** (o **Sposta**).
