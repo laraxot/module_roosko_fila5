@@ -147,6 +147,38 @@ Ogni intervento ha una story in `docs/stories/` del modulo che lo possiede.
 - Rimossi `ci-cd.yml` (FixCity) e `pint.yml`, che usava PHP 8.3 dalla cartella sbagliata.
 - Migrazione di User solo-MySQL resa neutra sugli altri driver: prima bloccava `migrate` su sqlite.
 
+### Bug trovati avviando l'applicazione vera (10 novembre)
+
+I test di action non li vedevano: sono emersi aprendo i pannelli nel browser con dati di prova,
+e sono tutti corretti.
+
+| Bug | Effetto | Correzione |
+|---|---|---|
+| `IsUserDatabaseConfiguredAction` usata da User ma mai committata | ogni login in 500 | action aggiunta con test (User `b6607e7af`) |
+| `roosko::admin` reso tenant-aware dal commit "." `2868288` | il personale dell'impianto non entrava in dashboard, conferimenti, pagina operatore | tenancy tolta, resta solo sull'area clienti (Roosko `2764122`) |
+| Azioni di riga di `HasXotTable` tipizzate `Model` | dashboard dell'impianto in 500 (tabella con record array) | closure su `mixed` (Xot `0b456a417`) |
+| Pagina operatore sul telefono | campo, bottoni e azioni tagliati fuori schermo; testo per screen reader visibile | CSS corretto, verificato a 412 px (Roosko `03c454d`) |
+| `laravel-vite-plugin` ^1.3 con vite 8 | `npm install` del modulo fallisce, la pagina operatore va in 500 senza bundle | ^3.2 (Roosko `b22ef7b`) |
+| Logo non configurato | immagine rotta su ogni pagina | logo Roosko in `config/local/roosko/metatag.php`; via i loghi di FixCity |
+| Migrazione User solo MySQL | `migrate` si fermava su sqlite | uscita anticipata sugli altri driver (User `bdd4e646f`) |
+| `merge-plugin` su `Modules/*` | `composer install` falliva da zero (modulo AI spento) | include solo dei moduli attivi |
+| Lang nel base senza i trait estratti | ogni comando artisan in errore in CI | file aggiunti dal repo di Lang |
+
+Restano piccole cose viste nelle schermate, non bloccanti:
+- il pulsante *Nuovo* sui widget-tabella di riepilogo, aggiunto da `HasXotTable`;
+- i badge di navigazione mostrano `--`;
+- il titolo «Rentri Status Page» non e' tradotto;
+- la pagina 404 del tema e' quella di FixCity.
+
+### Moduli condivisi, suite complete
+
+Xot e User aggiornati a `dev` del 10/11:
+- Xot: 868 test passati, 268 falliti;
+- User: 1012 test passati, 436 falliti.
+
+I fallimenti sono del codice condiviso, non di Roosko: i test sulle tabelle Xot falliscono
+uguali con e senza le correzioni di oggi. Vanno ripresi da chi mantiene quei moduli.
+
 ## 6. Rischi residui
 
 | # | Rischio | Probabilita' | Impatto | Mitigazione |
@@ -158,12 +190,13 @@ Ogni intervento ha una story in `docs/stories/` del modulo che lo possiede.
 | R5 | Backup, restore, cron dello scheduler e supervisor della coda `rentri` non documentati; `deploy.sh` non revisionato | media | alto | runbook in `Roosko/docs` e una prova di restore |
 | R6 | Licenza OSL-3.0 di `spipu/html2pdf`, usata per le etichette PDF | da verificare | medio | parere legale o sostituzione |
 | R7 | `composer.lock` non versionato: ogni installazione risolve versioni diverse | media | medio | versionare il lock dell'app base (decisione, sez. 7) |
-| R8 | Su `dev` dei moduli Notify (141 file), Media (7), Job (7) e Lang (1) ci sono marcatori di conflitto committati; il base ha copie pulite | certa (nei repo) | medio | risolvere i conflitti nei repo dei moduli prima del prossimo sync |
+| R8 | Copie di Xot, User, Tenant e Lang nel base non allineate ai repo (i marcatori di conflitto in Notify, Media, Job e Lang sono stati risolti a monte) | certa | medio | sync dei moduli condivisi da parte di chi li mantiene |
 
 ## 7. Decisioni che spettano al committente
 
-1. **Pannello `roosko::admin` tenant-aware.** Un commit "." (`2868288`) lo ha reso tale, mentre
-   la story dell'area cliente lo prevede di sola gestione. Va confermata l'intenzione.
+1. **Pannello `roosko::admin` tenant-aware.** Un commit "." (`2868288`) lo aveva reso tale. Il
+   personale non entrava piu', quindi la tenancy e' stata tolta. Se serviva una tenancy anche
+   lato impianto (piu' impianti?), va progettata nella story dell'area clienti.
 2. **Il cliente puo' modificare il numero di iscrizione RENTRI e lo stato attivo dei suoi
    cantieri.** Lo prevede la story (AC 4), ma il dato finisce nei payload RENTRI dell'impianto.
    Alternative: sola lettura, oppure modifica con approvazione dell'accettazione.
