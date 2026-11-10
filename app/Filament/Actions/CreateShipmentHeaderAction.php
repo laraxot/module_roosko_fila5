@@ -8,16 +8,18 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Roosko\Actions\CreateShipmentAction;
 use Modules\Roosko\Enums\ShipmentDocumentEnum;
 use Modules\Roosko\Filament\Actions\Concerns\NotifiesDomainErrors;
 use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
 use Modules\Roosko\Filament\Resources\ShipmentResource;
 use Modules\Roosko\Models\Shipment;
+use Modules\Warehouse\Models\Warehouse;
+use Modules\Waste\Enums\OperatorRoleEnum;
 use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Waste\Models\Operator;
 use Modules\Waste\Models\OperatorSite;
-use Modules\Warehouse\Models\Warehouse;
 use Modules\Xot\Actions\Cast\SafeIntCastAction;
 use Modules\Xot\Filament\Actions\XotBaseAction;
 
@@ -46,10 +48,18 @@ class CreateShipmentHeaderAction extends XotBaseAction
             ->modalHeading(static fn (): string => static::transAction('modal_heading'))
             ->schema([
                 'warehouse_id' => Select::make('warehouse_id')
-                    ->options(static fn (): array => Warehouse::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
+                    ->options(static fn (): array => self::warehouseOptions())
+                    ->default(static fn (): ?int => \count(self::warehouseOptions()) === 1 ? (int) array_key_first(self::warehouseOptions()) : null)
                     ->required(),
+                // Con il FIR il destinatario deve avere il ruolo di destinatario (CreateFirAction lo pretende alla
+                // spedizione): elencare gli altri faceva scoprire l'errore solo dopo aver caricato tutte le unita'.
                 'recipient_operator_id' => Select::make('recipient_operator_id')
-                    ->options(static fn (): array => Operator::query()->where('is_active', true)->orderBy('business_name')->pluck('business_name', 'id')->all())
+                    ->options(static fn (Get $get): array => Operator::query()
+                        ->where('is_active', true)
+                        ->when(self::isFir($get('document_type')), static fn (Builder $query): Builder => $query->withRole(OperatorRoleEnum::RECIPIENT))
+                        ->orderBy('business_name')
+                        ->pluck('business_name', 'id')
+                        ->all())
                     ->searchable()
                     ->live()
                     ->required(),
@@ -100,5 +110,18 @@ class CreateShipmentHeaderAction extends XotBaseAction
     private static function isFir(mixed $documentType): bool
     {
         return $documentType === ShipmentDocumentEnum::FIR || $documentType === ShipmentDocumentEnum::FIR->value;
+    }
+
+    /**
+     * Con un solo magazzino attivo la scelta e' gia' fatta.
+     *
+     * @return array<int, string>
+     */
+    private static function warehouseOptions(): array
+    {
+        /** @var array<int, string> $options */
+        $options = Warehouse::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
+
+        return $options;
     }
 }

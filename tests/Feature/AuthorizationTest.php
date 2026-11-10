@@ -97,6 +97,21 @@ test('abilita\' per ruolo sul conferimento e sul lotto', function (): void {
     Assert::assertFalse(Gate::forUser($acceptance)->allows('store', $lot));
 });
 
+test('il ruolo del pannello roosko::admin apre il pannello ma non concede abilita\' operative', function (): void {
+    /** @var PlantFixture $plant */
+    $plant = $this->plant;
+    $delivery = app(ReceiveDeliveryAction::class)->execute($plant->fir($plant->plastics), $plant->plant, $plant->warehouse);
+    $lot = WasteLot::factory()->create(['ewc_code_id' => $plant->plastics->id]);
+
+    // Come nel manuale: l'operatore di piazzale ha anche il ruolo del pannello per usare la pagina di scansione.
+    $operator = userWithRole(RooskoPermissionSeeder::OPERATOR);
+    $operator->assignRole(Role::findOrCreate('roosko::admin'));
+
+    Assert::assertFalse(Gate::forUser($operator)->allows('accept', $delivery));
+    Assert::assertFalse(Gate::forUser($operator)->allows('delete', $delivery));
+    Assert::assertTrue(Gate::forUser($operator)->allows('store', $lot));
+});
+
 test('abilita\' non dichiarate negate (eliminazione massiva, riordino, replica)', function (string $ability): void {
     $manager = userWithRole(RooskoPermissionSeeder::TECHNICAL_MANAGER);
 

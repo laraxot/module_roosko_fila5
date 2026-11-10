@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Pages;
 
+use DomainException;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -16,6 +17,7 @@ use Modules\Processing\Models\Machine;
 use Modules\Roosko\Actions\AddShipmentItemAction;
 use Modules\Roosko\Actions\GetLotStockKgAction;
 use Modules\Roosko\Actions\QueueUnitLabelAction;
+use Modules\Roosko\Actions\ResolvePlantSiteAction;
 use Modules\Roosko\Actions\ResolveScannedCodeAction;
 use Modules\Roosko\Actions\ResolveWasteLotAction;
 use Modules\Roosko\Actions\StartTreatmentAction;
@@ -27,6 +29,8 @@ use Modules\Warehouse\Actions\AdjustStockUnitWeightAction;
 use Modules\Warehouse\Enums\StockUnitStatusEnum;
 use Modules\Warehouse\Models\Location;
 use Modules\Warehouse\Models\StockUnit;
+use Modules\Warehouse\Models\Warehouse;
+use Modules\Waste\Actions\GetAuthorizedOperationsAction;
 use Modules\Waste\Enums\WasteOperationEnum;
 use Modules\Waste\Models\EwcCode;
 use Modules\Weighing\Exceptions\WeighingException;
@@ -205,10 +209,16 @@ class OperatorScanPage extends XotBasePage
             ->icon('heroicon-o-cog-6-tooth')
             ->color('warning')
             ->schema([
+                // Sul telefono la lista di 30 operazioni R/D era lunga e quasi tutta vietata: si propongono solo le
+                // operazioni autorizzate per il codice EER dell'unita'; con una sola macchina o operazione e' gia' scelta.
                 'machine_id' => Select::make('machine_id')
-                    ->options(static fn (): array => Machine::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
+                    ->options(static fn (): array => self::machineOptions())
+                    ->default(static fn (): ?int => \count(self::machineOptions()) === 1 ? (int) array_key_first(self::machineOptions()) : null)
                     ->required(),
-                'operation' => Select::make('operation')->options(WasteOperationEnum::class)->required(),
+                'operation' => Select::make('operation')
+                    ->options(fn (): array => $this->operationOptions())
+                    ->default(fn (): ?string => \count($this->operationOptions()) === 1 ? (string) array_key_first($this->operationOptions()) : null)
+                    ->required(),
             ])
             ->action(function (array $data): void {
                 $unit = $this->unit();
@@ -226,6 +236,47 @@ class OperatorScanPage extends XotBasePage
             })
             ->authorize(fn (): bool => $this->allows('treat'))
             ->visible(fn (): bool => $this->unit()?->status === StockUnitStatusEnum::STORED);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function machineOptions(): array
+    {
+        /** @var array<int, string> $options */
+        $options = Machine::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
+
+        return $options;
+    }
+
+    /**
+     * Operazioni autorizzate all'impianto per il codice EER dell'unita' scansionata; se non se ne trova
+     * nessuna (dati incompleti) si propongono tutte e decide StartTreatmentAction, che spiega il rifiuto.
+     *
+     * @return array<string, string>
+     */
+    private function operationOptions(): array
+    {
+        $all = collect(WasteOperationEnum::cases())->mapWithKeys(static fn (WasteOperationEnum $operation): array => [$operation->value => $operation->getLabel()]);
+        $unit = $this->unit();
+        $lot = $this->lot();
+        $ewc = $lot instanceof WasteLot ? EwcCode::query()->find($lot->ewc_code_id) : null;
+        $warehouse = $unit instanceof StockUnit ? $unit->warehouse : null;
+        if (! $ewc instanceof EwcCode || ! $warehouse instanceof Warehouse) {
+            return $all->all();
+        }
+
+        try {
+            $plant = app(ResolvePlantSiteAction::class)->execute($warehouse);
+        } catch (DomainException) {
+            return $all->all();
+        }
+
+        $authorized = app(GetAuthorizedOperationsAction::class)->execute($plant, $ewc);
+
+        return $authorized === []
+            ? $all->all()
+            : collect($authorized)->mapWithKeys(static fn (WasteOperationEnum $operation): array => [$operation->value => $operation->getLabel()])->all();
     }
 
     public function addToShipmentAction(): Action

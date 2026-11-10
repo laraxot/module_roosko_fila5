@@ -12,6 +12,6 @@ return [
         'plant_site_id' => ['label' => 'Impianto'],
         'warehouse_id' => ['label' => 'Magazzino'],
         'gross_kg' => ['label' => 'Peso lordo', 'helper_text' => 'Prima pesata in ingresso; vuoto se si pesa a pianale'],
-        'scale_id' => ['label' => 'Bilancia'],
+        'scale_id' => ['label' => 'Bilancia', 'helper_text' => "Bilancia collegata che ha letto il peso; vuota se il peso e' scritto a mano"],
     ],
 ];

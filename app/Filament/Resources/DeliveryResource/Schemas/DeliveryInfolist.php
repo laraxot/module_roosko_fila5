@@ -9,6 +9,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Illuminate\Support\Number;
 use Modules\Roosko\Models\Delivery;
 use Modules\Waste\Models\EwcCode;
 use Modules\Waste\Models\Fir;
@@ -28,7 +29,7 @@ class DeliveryInfolist extends XotBaseResourceInfolist
                     'code' => TextEntry::make('code')->copyable(),
                     'status' => TextEntry::make('status')->badge(),
                     'arrived_at' => TextEntry::make('arrived_at')->dateTime(),
-                    'analysis_required' => IconEntry::make('analysis_required')->boolean(),
+                    'analysis_required' => IconEntry::make('analysis_required')->boolean()->falseIcon('heroicon-o-minus')->falseColor('gray'),
                     'fir_number' => TextEntry::make('fir_number')->state(static fn (Delivery $record): ?string => self::fir($record)?->number),
                     'ewc_code' => TextEntry::make('ewc_code')->state(static fn (Delivery $record): ?string => self::ewcLabel($record)),
                     'plant_site' => TextEntry::make('plantSite.name'),
@@ -71,7 +72,14 @@ class DeliveryInfolist extends XotBaseResourceInfolist
     {
         $fir = self::fir($delivery);
 
-        return $fir === null || $fir->quantity === null ? null : (string) $fir->quantity;
+        if ($fir === null || ! is_numeric($fir->quantity)) {
+            return null;
+        }
+
+        // Stesso formato delle pesate (1.800,000 kg), con l'unita' dichiarata sul FIR e "stimata" se lo e'.
+        $quantity = Number::format((float) $fir->quantity, precision: 3, locale: app()->getLocale()).' '.$fir->quantity_unit->value;
+
+        return $fir->is_quantity_estimated ? $quantity.' ('.__('roosko::delivery_infolist.fields.fir_quantity.estimated').')' : $quantity;
     }
 
     private static function weight(Delivery $delivery, string $attribute): ?float

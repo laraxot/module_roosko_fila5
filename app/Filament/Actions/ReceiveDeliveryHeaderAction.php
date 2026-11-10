@@ -8,11 +8,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Number;
 use Modules\Roosko\Actions\ReceiveDeliveryAction;
+use Modules\Roosko\Enums\DeliveryStatusEnum;
 use Modules\Roosko\Filament\Actions\Concerns\NotifiesDomainErrors;
 use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
 use Modules\Roosko\Filament\Resources\DeliveryResource;
-use Modules\Roosko\Enums\DeliveryStatusEnum;
 use Modules\Roosko\Models\Delivery;
 use Modules\Warehouse\Models\Warehouse;
 use Modules\Waste\Enums\FirStatusEnum;
@@ -52,11 +53,14 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
                     ->options(static fn (): array => self::firOptions())
                     ->searchable()
                     ->required(),
+                // Con un solo impianto o un solo magazzino attivo (il caso comune) la scelta e' gia' fatta.
                 'plant_site_id' => Select::make('plant_site_id')
-                    ->options(static fn (): array => OperatorSite::query()->where('is_plant', true)->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
+                    ->options(static fn (): array => self::plantSiteOptions())
+                    ->default(static fn (): ?int => self::onlyKey(self::plantSiteOptions()))
                     ->required(),
                 'warehouse_id' => Select::make('warehouse_id')
-                    ->options(static fn (): array => Warehouse::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
+                    ->options(static fn (): array => self::warehouseOptions())
+                    ->default(static fn (): ?int => self::onlyKey(self::warehouseOptions()))
                     ->required(),
                 'gross_kg' => TextInput::make('gross_kg')
                     ->numeric()
@@ -133,13 +137,63 @@ class ReceiveDeliveryHeaderAction extends XotBaseAction
                 ->orWhere(static fn (Builder $query): Builder => $query
                     ->whereNull('recipient_site_id')
                     ->whereIn('recipient_operator_id', self::plantSites()->select('operator_id'))))
+            ->with(['producer', 'ewcCode'])
             ->orderByDesc('id')
             ->limit(200)
             ->get();
 
         return $firs
-            ->mapWithKeys(static fn (Fir $fir): array => [$fir->id => (string) ($fir->number ?? '#'.$fir->id)])
+            ->mapWithKeys(static fn (Fir $fir): array => [$fir->id => self::firLabel($fir)])
             ->all();
+    }
+
+    /**
+     * Cio' che l'accettazione legge sul documento in mano: numero (o `#id` se il FIR cartaceo non ha
+     * ancora il numero a sistema), produttore, codice EER e quantita' dichiarata. Con il solo numero
+     * due FIR senza numero comparivano come `#8` e `#9`, indistinguibili.
+     */
+    private static function firLabel(Fir $fir): string
+    {
+        $quantity = is_numeric($fir->quantity)
+            ? Number::format((float) $fir->quantity, precision: 0, locale: app()->getLocale()).' '.$fir->quantity_unit->value
+            : null;
+
+        return implode(' · ', array_filter([
+            $fir->number ?? '#'.$fir->id,
+            $fir->producer?->business_name,
+            $fir->ewcCode?->display_code,
+            $quantity,
+        ], static fn (?string $part): bool => $part !== null && $part !== ''));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function plantSiteOptions(): array
+    {
+        /** @var array<int, string> $options */
+        $options = self::plantSites()->orderBy('name')->pluck('name', 'id')->all();
+
+        return $options;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function warehouseOptions(): array
+    {
+        /** @var array<int, string> $options */
+        $options = Warehouse::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
+
+        return $options;
+    }
+
+    /**
+     * @param  array<int, string>  $options
+     */
+    private static function onlyKey(array $options): ?int
+    {
+        return \count($options) === 1 ? (int) array_key_first($options) : null;
     }
 
     /**

@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Providers;
 
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Cache;
+use Modules\Roosko\Actions\RunProductionChecksAction;
 use Modules\Roosko\Guards\WasteAuthorizationPlacementGuard;
 use Modules\Xot\Providers\XotBaseServiceProvider;
 use Override;
@@ -23,6 +28,55 @@ class RooskoServiceProvider extends XotBaseServiceProvider
 
         $this->registerPlacementGuard();
         $this->disableNativeProcessingMaterialActions();
+        $this->configureDateFormats();
+        $this->registerSchedulerHeartbeat();
+        $this->registerErrorViews();
+    }
+
+    /**
+     * Pagine d'errore di Roosko davanti a quelle del tema pubblico, che erano di un altro prodotto. Laravel
+     * cerca `errors::{codice}` nelle cartelle `errors` di `view.paths`: qui c'e' solo `errors/`, quindi le
+     * altre viste non cambiano.
+     */
+    private function registerErrorViews(): void
+    {
+        /** @var list<string> $paths */
+        $paths = config('view.paths', []);
+        $errorViews = module_path('Roosko', 'resources/error-views');
+        if (! \in_array($errorViews, $paths, true)) {
+            config(['view.paths' => [$errorViews, ...$paths]]);
+        }
+    }
+
+    /**
+     * Battito dello scheduler: `roosko:production-check` segnala se il cron di `schedule:run` non gira
+     * (senza, gli esiti RENTRI non vengono mai verificati).
+     */
+    private function registerSchedulerHeartbeat(): void
+    {
+        $this->callAfterResolving(Schedule::class, static function (Schedule $schedule): void {
+            $schedule->call(static fn (): bool => Cache::put(RunProductionChecksAction::SCHEDULER_HEARTBEAT_KEY, now()->toIso8601String(), 3600))
+                ->name('roosko:scheduler-heartbeat')
+                ->everyMinute();
+        });
+    }
+
+    /**
+     * Date e ore all'italiana in tutte le tabelle e le schede di Filament: il default di Filament
+     * e' all'americana (`nov 10, 2026`), poco leggibile per chi compila registri e FIR.
+     */
+    private function configureDateFormats(): void
+    {
+        Table::configureUsing(static function (Table $table): void {
+            $table->defaultDateDisplayFormat('d/m/Y')
+                ->defaultDateTimeDisplayFormat('d/m/Y H:i')
+                ->defaultTimeDisplayFormat('H:i');
+        });
+        Schema::configureUsing(static function (Schema $schema): void {
+            $schema->defaultDateDisplayFormat('d/m/Y')
+                ->defaultDateTimeDisplayFormat('d/m/Y H:i')
+                ->defaultTimeDisplayFormat('H:i');
+        });
     }
 
     /**

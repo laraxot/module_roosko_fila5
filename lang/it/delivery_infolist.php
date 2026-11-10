@@ -20,7 +20,7 @@ return [
         'gross_kg' => ['label' => 'Lordo'],
         'tare_kg' => ['label' => 'Tara'],
         'net_kg' => ['label' => 'Netto'],
-        'fir_quantity' => ['label' => 'Quantità dichiarata sul FIR'],
+        'fir_quantity' => ['label' => 'Quantità dichiarata sul FIR', 'estimated' => 'stimata'],
         'accepted_kg' => ['label' => 'Accettati'],
         'rejected_kg' => ['label' => 'Respinti'],
         'rejection_reason' => ['label' => 'Motivo del respingimento'],

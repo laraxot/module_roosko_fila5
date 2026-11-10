@@ -12,6 +12,6 @@ return [
         'plant_site_id' => ['label' => 'Plant'],
         'warehouse_id' => ['label' => 'Warehouse'],
         'gross_kg' => ['label' => 'Gross weight', 'helper_text' => 'First inbound weighing; empty when weighing on a platform scale'],
-        'scale_id' => ['label' => 'Scale'],
+        'scale_id' => ['label' => 'Scale', 'helper_text' => "Connected scale that read the weight; empty if the weight is typed in"],
     ],
 ];

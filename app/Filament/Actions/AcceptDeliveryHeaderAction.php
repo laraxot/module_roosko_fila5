@@ -19,6 +19,7 @@ use Modules\Roosko\Filament\Actions\Concerns\TranslatesAction;
 use Modules\Roosko\Models\Delivery;
 use Modules\Warehouse\Enums\ContainerTypeEnum;
 use Modules\Waste\Enums\WasteOperationEnum;
+use Modules\Waste\Models\Fir;
 use Modules\Weighing\Models\Weighing;
 use Modules\Xot\Filament\Actions\XotBaseAction;
 
@@ -52,7 +53,8 @@ class AcceptDeliveryHeaderAction extends XotBaseAction
             ->fillForm(static fn (Delivery $record): array => [
                 'accepted_kg' => self::weighedNetKg($record),
                 'rejected_kg' => 0,
-                'operation' => WasteOperationEnum::R13->value,
+                // L'operazione dichiarata sul FIR; R13 se il FIR non c'e' piu'.
+                'operation' => ($record->fir instanceof Fir ? $record->fir->operation : WasteOperationEnum::R13)->value,
                 'units' => [['container_type' => ContainerTypeEnum::BIG_BAG->value, 'net_weight_kg' => self::weighedNetKg($record)]],
             ])
             ->schema(static fn (Delivery $record): array => [
