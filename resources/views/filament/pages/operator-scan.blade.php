@@ -8,10 +8,13 @@
 
 <x-filament-panels::page>
     <style>
-        .roosko-op { display: grid; gap: 1rem; max-width: 40rem; margin-inline: auto; }
+        .roosko-op { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; width: 100%; max-width: 40rem; margin-inline: auto; }
+        .roosko-op > * { min-width: 0; }
+        .roosko-op-scan input { width: 100%; }
         .roosko-op-scan { display: flex; gap: .5rem; align-items: stretch; }
-        .roosko-op-scan input { flex: 1; min-width: 0; font-size: 1.25rem; padding: .75rem 1rem; border-radius: .75rem; border: 2px solid rgb(var(--primary-500, 20 184 166)); background: transparent; }
-        .roosko-op-scan input:focus { outline: 3px solid rgb(var(--primary-300, 94 234 212)); }
+        .roosko-op-scan input { flex: 1; min-width: 0; font-size: 1.25rem; padding: .75rem 1rem; border-radius: .75rem; border: 2px solid var(--primary-500, #14b8a6); background: transparent; }
+        .roosko-op-scan input:focus { outline: 3px solid var(--primary-300, #5eead4); }
+        .roosko-op-scan > div { display: flex; }
         .roosko-op-camera-btn { min-width: 3.5rem; border-radius: .75rem; font-size: 1.5rem; }
         .roosko-op-hint { font-size: .875rem; opacity: .75; }
         .roosko-op-awaiting { padding: .75rem 1rem; border-radius: .75rem; background: rgba(234, 179, 8, .15); font-weight: 600; display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
@@ -27,6 +30,8 @@
         .roosko-op-list button { text-align: start; padding: .75rem 1rem; border-radius: .75rem; border: 1px solid rgba(127, 127, 127, .25); display: flex; justify-content: space-between; gap: .5rem; }
         .roosko-op-video { width: 100%; border-radius: 1rem; background: #000; aspect-ratio: 1 / 1; object-fit: cover; }
         .roosko-op-error { color: rgb(220, 38, 38); }
+        /* testo per screen reader: il CSS di Filament non include l'utility `sr-only` di Tailwind */
+        .roosko-op-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     </style>
 
     <div class="roosko-op">
@@ -67,11 +72,11 @@
                 placeholder="{{ $awaiting === 'location' ? $t('scan.placeholder_location') : $t('scan.placeholder') }}"
             >
             <x-filament::button type="button" color="gray" class="roosko-op-camera-btn" x-on:click="toggleKeyboard()" icon="heroicon-o-command-line" :tooltip="$t('scan.keyboard')" x-bind:aria-pressed="keyboard ? 'true' : 'false'">
-                <span class="sr-only">{{ $t('scan.keyboard') }}</span>
+                <span class="roosko-op-sr-only">{{ $t('scan.keyboard') }}</span>
             </x-filament::button>
             <div x-data="rooskoScanner" data-roosko-scanner>
                 <x-filament::button type="button" color="gray" class="roosko-op-camera-btn" x-on:click="start()" icon="heroicon-o-camera" :tooltip="$t('scan.camera')">
-                    <span class="sr-only">{{ $t('scan.camera') }}</span>
+                    <span class="roosko-op-sr-only">{{ $t('scan.camera') }}</span>
                 </x-filament::button>
 
                 <x-filament::modal id="roosko-camera" width="md" :close-by-clicking-away="false">
