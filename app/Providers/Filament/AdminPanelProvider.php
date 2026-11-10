@@ -8,7 +8,6 @@ use Filament\Panel;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Foundation\Vite;
 use Modules\Roosko\Filament\Pages\OperatorScanPage;
-use Modules\Xot\Datas\XotData;
 use Modules\Xot\Providers\Filament\XotBasePanelProvider;
 use Override;
 
@@ -26,9 +25,10 @@ class AdminPanelProvider extends XotBasePanelProvider
     #[Override]
     public function panel(Panel $panel): Panel
     {
+        // Pannello del personale dell'impianto: nessuna tenancy. L'unico pannello tenant-aware e'
+        // l'area clienti `roosko::customer` (story 01.area-cliente-cantieri). Con `->tenant()` qui il
+        // personale, che non e' membro di un cliente, non poteva aprire dashboard e pagina operatore.
         $panel = parent::panel($panel);
-        $tenant_class = XotData::make()->getTenantClass();
-        $panel->tenant($tenant_class, slugAttribute: 'slug');
 
         return $panel
             ->renderHook(
