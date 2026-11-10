@@ -3,14 +3,17 @@ title: Roosko — audit di progetto e roadmap di completamento
 type: audit
 module: Roosko
 created: 2026-11-05
-updated: 2026-11-05
+updated: 2026-11-10
 scope: [base_roosko_fila5@7bf1639a, Roosko, Waste, Warehouse, Processing, Weighing, Labeling, Rentri, User, Xot, Tenant]
 qmd: "audit roosko stato completamento gap roadmap area cliente cantieri tenancy rentri"
 ---
 
 # Roosko — audit di progetto
 
-Indice: [findings.md](findings.md) (rilievi con evidenze) · [backlog.md](backlog.md) (gap P0–P3
+> **Stato al 2026-11-10**: questo e' l'audit iniziale (solo lettura). Lo stato verificato dopo
+> implementazione e test e' in [final-report.md](final-report.md).
+
+Indice: [final-report.md](final-report.md) (stato verificato, rischi, decisioni) · [findings.md](findings.md) (rilievi con evidenze) · [backlog.md](backlog.md) (gap P0–P3
 con criteri di accettazione) · [roadmap.md](roadmap.md) (fasi e percorso critico).
 
 Modalita': **audit e pianificazione**. Nessuna modifica al codice applicativo in questa esecuzione.
