@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Guards;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Roosko\Actions\GetLotStockKgAction;
 use Modules\Roosko\Actions\ResolveWasteLotAction;
@@ -46,7 +47,15 @@ class WasteAuthorizationPlacementGuard implements PlacementGuardContract
         }
 
         /** @var \Illuminate\Support\Collection<array-key, AuthorizedWaste> $authorizedWastes */
-        $authorizedWastes = AuthorizedWaste::query()->whereIn('id', $rules->pluck('authorized_waste_id')->all())->get()->keyBy('id');
+        // Solo titoli validi oggi; le righe autorizzative si bloccano (dopo area e posizione, gia'
+        // bloccate da Warehouse) perche' due posizionamenti concorrenti non superino lo stesso limite.
+        $authorizedWastes = AuthorizedWaste::query()
+            ->whereIn('id', $rules->pluck('authorized_waste_id')->all())
+            ->validOn(CarbonImmutable::today())
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
         $ewc = EwcCode::query()->findOrFail($lot->ewc_code_id);
 
         if ($lot->isHazardous() && ! $this->areaAcceptsHazardous($authorizedWastes)) {

@@ -71,7 +71,7 @@ class AcceptDeliveryAction
         $fir = Fir::query()->findOrFail($delivery->fir_id);
         $plant = OperatorSite::query()->findOrFail($delivery->plant_site_id);
         $ewc = EwcCode::query()->findOrFail($fir->ewc_code_id);
-        $this->assertAuthorized($plant, $ewc, $data);
+        $this->assertAuthorized($plant, $ewc, $data, CarbonImmutable::parse($delivery->arrived_at));
 
         /** @var array{units: list<StockUnit>, fir: Fir} $result */
         $result = app(RunInPlantTransactionAction::class)->execute(function () use ($delivery, $data, $plant, $target): array {
@@ -162,9 +162,10 @@ class AcceptDeliveryAction
         return $stockUnit;
     }
 
-    private function assertAuthorized(OperatorSite $plant, EwcCode $ewc, DeliveryAcceptanceData $data): void
+    /** Il titolo autorizzativo deve essere valido alla data dell'operazione (arrivo del carico). */
+    private function assertAuthorized(OperatorSite $plant, EwcCode $ewc, DeliveryAcceptanceData $data, CarbonImmutable $operationAt): void
     {
-        $authorized = app(FindAuthorizedWasteAction::class)->execute($plant, $ewc, $data->operation);
+        $authorized = app(FindAuthorizedWasteAction::class)->execute($plant, $ewc, $data->operation, $operationAt);
         if (! $authorized instanceof AuthorizedWaste) {
             throw AuthorizationException::wasteNotAuthorized($ewc->code, $data->operation->value, $plant->name);
         }

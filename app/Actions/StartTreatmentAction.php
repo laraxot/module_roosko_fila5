@@ -120,7 +120,7 @@ class StartTreatmentAction
         /** @var \Illuminate\Database\Eloquent\Collection<int, EwcCode> $ewcCodes */
         $ewcCodes = EwcCode::query()->whereIn('id', $ewcIds)->get();
         foreach ($ewcCodes as $ewc) {
-            $authorized = app(FindAuthorizedWasteAction::class)->execute($plant, $ewc, $operation);
+            $authorized = app(FindAuthorizedWasteAction::class)->execute($plant, $ewc, $operation, CarbonImmutable::today());
             if (! $authorized instanceof AuthorizedWaste) {
                 throw AuthorizationException::wasteNotAuthorized($ewc->code, $operation->value, $plant->name);
             }
