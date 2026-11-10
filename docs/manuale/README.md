@@ -3,7 +3,7 @@ title: Roosko — manuale d'uso
 type: manual
 module: Roosko
 created: 2026-11-05
-updated: 2026-11-05
+updated: 2026-11-10
 qmd: "manuale d'uso roosko operatore piazzale accettazione conferimento uscita cliente cantieri amministratore"
 ---
 
@@ -26,6 +26,22 @@ scarico e gli invii RENTRI si scrivono da soli mentre si lavora: non vanno ricop
 | Responsabile tecnico | pannello Roosko (dashboard, lavorazioni), pannelli Rifiuti e RENTRI | [Responsabile tecnico](responsabile-tecnico.md) |
 | Amministratore | pannelli dei moduli, utenti e permessi | [Amministrazione](amministrazione.md) |
 | Cliente dell'impianto | **Area clienti** | [Area clienti](area-clienti.md) |
+
+## Versione PDF
+
+Ogni capitolo esiste anche in PDF, da stampare o consegnare a chi fa quel lavoro:
+
+| PDF | Per chi |
+|---|---|
+| [roosko-manuale-uso.pdf](pdf/roosko-manuale-uso.pdf) | manuale completo |
+| [manuale-operatore-piazzale.pdf](pdf/manuale-operatore-piazzale.pdf) | operatore di piazzale |
+| [manuale-accettazione-uscite.pdf](pdf/manuale-accettazione-uscite.pdf) | ufficio pesa e accettazione |
+| [manuale-responsabile-tecnico.pdf](pdf/manuale-responsabile-tecnico.pdf) | responsabile tecnico |
+| [manuale-area-clienti.pdf](pdf/manuale-area-clienti.pdf) | cliente dell'impianto |
+| [manuale-amministrazione.pdf](pdf/manuale-amministrazione.pdf) | amministratore |
+
+Il Markdown e' la fonte. Dopo ogni modifica ai `.md` o alle schermate in `img/` si rigenerano i PDF
+con `python3 build-pdf.py` (requisiti nell'intestazione dello script) e si committano insieme.
 
 ## Come si entra
 

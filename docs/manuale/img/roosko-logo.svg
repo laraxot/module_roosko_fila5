@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" role="img" aria-label="Roosko">
+  <rect width="128" height="128" rx="24" fill="#0f766e"/>
+  <g fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round">
+    <rect x="28" y="28" width="28" height="28"/><rect x="72" y="28" width="28" height="28"/><rect x="28" y="72" width="28" height="28"/>
+  </g>
+  <rect x="72" y="72" width="11" height="11" fill="#ffffff"/><rect x="89" y="89" width="11" height="11" fill="#ffffff"/>
+  <text x="152" y="92" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="76" font-weight="700" fill="#18181b">Roosko</text>
+</svg>
