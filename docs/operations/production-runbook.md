@@ -3,7 +3,7 @@ title: Roosko — runbook di produzione
 type: runbook
 module: Roosko
 created: 2026-11-10
-updated: 2026-11-10
+updated: 2026-11-11
 qmd: "roosko produzione deploy rilascio backup restore cron scheduler supervisor code rentri worker controllo"
 related:
   - "../audit/final-report.md"
@@ -57,7 +57,7 @@ git pull origin dev   # oppure checkout del tag
 1. manutenzione;
 2. backup dei due database;
 3. dipendenze PHP;
-4. symlink degli asset: `public_html/assets/{modulo}` → `Modules/{Modulo}/public` e `public_html/themes/{Tema}` → `Themes/{Tema}/public` (`xot:module-link`, `xot:theme-link`);
+4. symlink relativi degli asset: `public_html/assets/{modulo}` → `../../laravel/Modules/{Modulo}/public` e `public_html/themes/{Tema}` → `../../laravel/Themes/{Tema}/public` (`xot:module-link`, `xot:theme-link`). I link non si committano: li elencano `public_html/assets/.gitignore` e `public_html/themes/.gitignore`, che i comandi aggiornano da soli;
 5. migrazioni;
 6. cache;
 7. `queue:restart`;
