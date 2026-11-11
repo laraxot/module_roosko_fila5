@@ -93,6 +93,12 @@ Eseguiti nella harness con PHP 8.4.27 e i moduli a `dev` dell'11/11; gli stessi 
 | Roosko | 125 passed | 561 |
 | Tenant | 208 passed, 17 failed, 40 skipped | 1123 |
 
+**CI del base** (run del commit `1041c298`, 11/11): tutti i job verdi.
+- Pest dei 7 moduli di dominio;
+- PHPStan;
+- bundle Vite di Geo e Roosko allineati ai sorgenti;
+- numerazione concorrente del registro su **MariaDB 11.4**: 4 processi, 40 scritture, numeri 1..40 senza buchi né duplicati.
+
 I 17 test falliti di Tenant sono preesistenti. Prima dell'intervento erano 18. Riguardano funzioni
 di Tenant non usate da Roosko: domini e configurazioni JSON. Nessuno tocca l'alias delle connessioni.
 
