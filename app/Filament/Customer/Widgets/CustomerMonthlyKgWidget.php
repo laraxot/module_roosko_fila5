@@ -9,6 +9,7 @@ use Filament\Tables\Table;
 use Modules\Roosko\Actions\GetCustomerSiteDeliveredKgAction;
 use Modules\Roosko\Filament\Customer\Resources\CustomerSiteResource;
 use Modules\Waste\Models\OperatorSite;
+use Modules\Roosko\Filament\Widgets\Concerns\ReadOnlyTableWidget;
 use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
 
 /**
@@ -18,6 +19,8 @@ use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
  */
 class CustomerMonthlyKgWidget extends XotBaseTableWidget
 {
+    use ReadOnlyTableWidget;
+
     protected static ?int $sort = 1;
 
     protected int|string|array $columnSpan = 'full';

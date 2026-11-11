@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Modules\Roosko\Actions\GetPlantStockSummaryAction;
 use Modules\Roosko\Datas\StockSummaryRowData;
 use Modules\Warehouse\Models\Warehouse;
+use Modules\Roosko\Filament\Widgets\Concerns\ReadOnlyTableWidget;
 use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
 
 /**
@@ -20,6 +21,8 @@ use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
  */
 class PlantStockByEwcWidget extends XotBaseTableWidget
 {
+    use ReadOnlyTableWidget;
+
     public static function canView(): bool
     {
         return auth()->user()?->can('viewAny', WasteLot::class) ?? false;
@@ -48,7 +51,14 @@ class PlantStockByEwcWidget extends XotBaseTableWidget
             'warehouse' => TextColumn::make('warehouse'),
             'ewc_code' => TextColumn::make('ewc_code'),
             'description' => TextColumn::make('description')->limit(60)->wrap(),
-            'is_hazardous' => IconColumn::make('is_hazardous')->boolean(),
+            // Il pericoloso e' l'avviso (triangolo ambra), il non pericoloso un trattino neutro: con il booleano
+            // di default il pericoloso compariva come spunta verde.
+            'is_hazardous' => IconColumn::make('is_hazardous')
+                ->boolean()
+                ->trueIcon('heroicon-o-exclamation-triangle')
+                ->trueColor('warning')
+                ->falseIcon('heroicon-o-minus')
+                ->falseColor('gray'),
             'units_count' => TextColumn::make('units_count')->numeric(),
             'stock_kg' => TextColumn::make('stock_kg')->numeric(3),
             'authorized_max_kg' => TextColumn::make('authorized_max_kg')->numeric(3),

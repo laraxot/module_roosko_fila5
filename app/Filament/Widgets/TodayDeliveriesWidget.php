@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Roosko\Filament\Widgets;
 
-use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Roosko\Filament\Resources\DeliveryResource;
 use Modules\Roosko\Models\Delivery;
+use Modules\Roosko\Filament\Widgets\Concerns\ReadOnlyTableWidget;
 use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
 
 /**
@@ -17,6 +17,8 @@ use Modules\Xot\Filament\Widgets\XotBaseTableWidget;
  */
 class TodayDeliveriesWidget extends XotBaseTableWidget
 {
+    use ReadOnlyTableWidget;
+
     public static function canView(): bool
     {
         return auth()->user()?->can('viewAny', Delivery::class) ?? false;
@@ -47,33 +49,6 @@ class TodayDeliveriesWidget extends XotBaseTableWidget
             'status' => TextColumn::make('status')->badge(),
             'accepted_kg' => TextColumn::make('accepted_kg')->numeric(3),
         ];
-    }
-
-    /**
-     * @return array<string, Action>
-     */
-    #[\Override]
-    public function getTableHeaderActions(): array
-    {
-        return [];
-    }
-
-    /**
-     * @return array<string, Action>
-     */
-    #[\Override]
-    public function getTableActions(): array
-    {
-        return [];
-    }
-
-    /**
-     * @return array<string, never>
-     */
-    #[\Override]
-    public function getTableBulkActions(): array
-    {
-        return [];
     }
 
     /**
