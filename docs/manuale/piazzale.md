@@ -2,7 +2,7 @@
 title: Manuale — piazzale (operatore)
 type: manual
 module: Roosko
-updated: 2026-11-05
+updated: 2026-11-11
 ---
 
 # Piazzale: la pagina dell'operatore
@@ -41,7 +41,7 @@ Compare la scheda dell'unita': **EER**, **Peso netto**, **Posizione**, **Stato**
 | Azione | Quando | Cosa succede |
 |---|---|---|
 | **Stocca** / **Sposta** | l'unita' va messa o spostata in una posizione | il sistema chiede di scansionare la posizione di destinazione |
-| **Avvia trattamento** | l'unita' entra in una macchina (es. trituratore) | si scelgono **Macchina** e **Operazione**; l'unita' viene consumata dal trattamento |
+| **Avvia trattamento** | l'unita' entra in una macchina (es. trituratore) | si scelgono **Macchina** e **Operazione**. Se c'e' una sola macchina e' gia' scelta; l'elenco delle operazioni contiene solo quelle che l'autorizzazione dell'impianto ammette per quel codice EER. L'unita' viene consumata dal trattamento |
 | **Aggiungi a uscita** | l'unita' sta per essere caricata su un mezzo | si sceglie l'**Uscita** in preparazione |
 | **Ristampa etichetta** | l'etichetta e' rovinata o persa | si indica il numero di **Copie** |
 | **Rettifica peso** | il peso reale e' diverso da quello registrato | si indicano **Nuovo peso netto** e **Motivo** (obbligatorio, resta nello storico) |

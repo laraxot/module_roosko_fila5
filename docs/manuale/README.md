@@ -3,7 +3,7 @@ title: Roosko — manuale d'uso
 type: manual
 module: Roosko
 created: 2026-11-05
-updated: 2026-11-10
+updated: 2026-11-11
 qmd: "manuale d'uso roosko operatore piazzale accettazione conferimento uscita cliente cantieri amministratore"
 ---
 
@@ -45,8 +45,13 @@ con `python3 build-pdf.py` (requisiti nell'intestazione dello script) e si commi
 
 ## Come si entra
 
+![La pagina d'ingresso: personale dell'impianto o area clienti.](img/00-ingresso.png)
+
+*La pagina d'ingresso (`/it`): si sceglie se entrare come personale dell'impianto o come cliente.*
+
 | Area | Indirizzo |
 |---|---|
+| Pagina d'ingresso | `/it` (in inglese `/en`) |
 | Pannello dell'impianto | `/roosko/admin` |
 | Pagina dell'operatore | `/roosko/admin/operator` |
 | Area clienti | `/roosko/customer` (dopo l'accesso: `/roosko/customer/{codice-cliente}`) |
@@ -66,7 +71,8 @@ compare, non e' un errore dell'applicazione: manca il permesso, e va chiesto all
 5. **Lavorazione**: dall'unita' scansionata si usa «Avvia trattamento». I prodotti si registrano in
    **Lavorazioni in corso** e diventano nuove unita' con nuova etichetta.
 6. **Uscita**: in **Uscite** si crea l'uscita, si caricano le unita' e si usa «Spedisci». Per i
-   rifiuti nascono il FIR e lo scarico di registro.
+   rifiuti nascono il FIR e lo scarico di registro. Il FIR cartaceo nasce in bozza: si completano
+   numero e trasportatore nel pannello Rifiuti e poi si emette.
 
 ## Regole che valgono ovunque
 

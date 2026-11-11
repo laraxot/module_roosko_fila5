@@ -2,7 +2,7 @@
 title: Manuale — amministrazione
 type: manual
 module: Roosko
-updated: 2026-11-05
+updated: 2026-11-11
 ---
 
 # Amministrazione
@@ -11,9 +11,20 @@ updated: 2026-11-05
 
 ## Configurazione iniziale dell'impianto (in quest'ordine)
 
+![Soggetti nel pannello Rifiuti: ogni impresa con i suoi ruoli (produttore, trasportatore, destinatario).](img/30-soggetti.png)
+
+*Soggetti nel pannello Rifiuti: ogni impresa con i suoi ruoli.*
+
 1. **Rifiuti → Soggetti**: l'impresa che gestisce l'impianto, poi produttori, trasportatori e
-   destinatari. **Unita' locali**: le sedi; quella dell'impianto ha la spunta di impianto.
+   destinatari. I ruoli contano: nelle uscite con FIR si possono scegliere solo i soggetti con ruolo
+   *destinatario*, e nel FIR il trasportatore va scelto tra chi ha il ruolo *trasportatore*.
+   **Unita' locali**: le sedi; quella dell'impianto ha la spunta di impianto.
 2. **Rifiuti → Autorizzazioni impianto**: l'atto autorizzativo con i codici EER, le operazioni e i limiti.
+   Le operazioni elencate qui sono le sole proposte all'operatore quando avvia un trattamento.
+
+![Autorizzazione dell'impianto: titolo, scadenza e, sotto, i codici EER con le operazioni ammesse.](img/31-autorizzazione.png)
+
+*Autorizzazione dell'impianto: titolo, scadenza e, sotto, i codici EER con le operazioni ammesse.*
 3. **Magazzino** (`/warehouse/admin`): **Magazzini**, **Aree** e **Posizioni**. La **Mappa
    magazzino** mostra la disposizione. Conviene assegnare un'etichetta a ogni posizione: il piazzale la scansiona.
 4. **Autorizzazioni → Regole di stoccaggio** (pannello Roosko): quali codici possono stare in
@@ -23,11 +34,33 @@ updated: 2026-11-05
 7. **Lavorazioni** (`/processing/admin`): le macchine.
 8. **RENTRI** (`/rentri/admin`): le credenziali delle unita' locali.
 
+## Messa in produzione e controlli
+
+Rilascio e controlli sono descritti nel [runbook di produzione](../operations/production-runbook.md).
+In breve:
+
+- si rilascia con `./deploy.sh` dalla radice del progetto: backup, dipendenze, link degli asset,
+  migrazioni, cache, riavvio delle code;
+- alla fine `php artisan roosko:production-check` controlla:
+  - configurazione: debug spento, https, chiave;
+  - code e scheduler;
+  - cartelle scrivibili e asset;
+  - comuni, impianto, autorizzazioni e credenziale RENTRI;
+
+  se c'e' un controllo bloccante il comando lo dice e spiega cosa fare;
+- gli asset (pagina operatore, mappe, tema) non si copiano: `public_html/assets/<modulo>` e
+  `public_html/themes/<tema>` sono collegamenti relativi alle cartelle `public/` di moduli e temi
+  (`php artisan xot:module-link`, `php artisan xot:theme-link`, gia' eseguiti da `deploy.sh`).
+
 ## Utenti e accessi
 
 - Il **super amministratore** si crea da riga di comando:
   `php artisan user:super-admin --email=...`. Il comando assegna anche l'accesso a tutti i
   pannelli dei moduli presenti; se in seguito si aggiunge un modulo, va rilanciato.
+![Utenti (pannello User): da qui si creano gli utenti e si assegnano i ruoli.](img/32-utenti.png)
+
+*Utenti (pannello User, `/user/admin/users`): da qui si creano gli utenti e si assegnano i ruoli.*
+
 - Gli altri utenti si creano nel modulo utenti e ricevono un ruolo. L'accesso a un pannello
   richiede il ruolo con lo stesso nome del pannello (es. `roosko::admin`); le operazioni dentro
   il pannello richiedono i permessi (es. vedere o creare conferimenti).

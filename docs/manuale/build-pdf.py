@@ -45,6 +45,8 @@ section { page-break-before: always; }
 h1 { font-size: 22pt; color: #0f766e; margin: 0 0 10pt; }
 h2 { font-size: 14pt; margin: 16pt 0 6pt; border-bottom: 1px solid #e4e4e7; padding-bottom: 3pt; }
 h3 { font-size: 11.5pt; margin: 12pt 0 4pt; }
+h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+p:has(> img.shot) { break-inside: avoid; }
 table { border-collapse: collapse; width: 100%; font-size: 9pt; margin: 6pt 0; }
 th, td { border: 1px solid #e4e4e7; padding: 4pt 6pt; text-align: left; vertical-align: top; }
 th { background: #f4f4f5; }
