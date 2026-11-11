@@ -12,6 +12,7 @@ use Modules\Rentri\Models\RentriCredential;
 use Modules\Roosko\Datas\ProductionCheckData;
 use Modules\Waste\Models\OperatorSite;
 use Modules\Waste\Models\PlantAuthorization;
+use Modules\Xot\Datas\XotData;
 use Spatie\QueueableAction\QueueableAction;
 use Throwable;
 
@@ -53,8 +54,11 @@ class RunProductionChecksAction
             $checks[] = $this->check('writable.'.$label, is_writable($path) ? 'ok' : 'fail', $path.' scrivibile dall\'utente del web server');
         }
 
-        $checks[] = $this->check('assets.operator', is_file(public_path('assets/roosko/manifest.json')) ? 'ok' : 'warn', 'build della pagina operatore (fotocamera): npm run build in Modules/Roosko');
-        $checks[] = $this->check('assets.geo', is_file(public_path('assets/geo/manifest.json')) ? 'ok' : 'warn', 'build di Geo (selettore coordinate): npm run build in Modules/Geo');
+        // Asset serviti dai symlink public_html/assets/{modulo} e public_html/themes/{Tema} verso le cartelle public/ versionate.
+        $checks[] = $this->check('assets.operator', is_file(public_path('assets/roosko/manifest.json')) ? 'ok' : 'warn', 'pagina operatore (fotocamera): php artisan xot:module-link');
+        $checks[] = $this->check('assets.geo', is_file(public_path('assets/geo/manifest.json')) ? 'ok' : 'warn', 'Geo (selettore coordinate): php artisan xot:module-link');
+        $theme = XotData::make()->pub_theme;
+        $checks[] = $this->check('assets.theme', is_file(public_path('themes/'.$theme.'/manifest.json')) ? 'ok' : 'warn', 'tema '.$theme.' (pagine pubbliche): php artisan xot:theme-link');
 
         $mailer = config('mail.default');
         $checks[] = $this->check('mail', \in_array($mailer, ['log', 'array'], true) ? 'warn' : 'ok', 'MAIL_MAILER='.(\is_string($mailer) ? $mailer : '-').' (con log/array le mail non partono: reset password, notifiche)');

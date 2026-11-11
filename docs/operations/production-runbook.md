@@ -22,7 +22,7 @@ repository base (`base_roosko_fila5`).
 | PHP | 8.4, con `intl`, `mbstring`, `bcmath`, `gd`, `zip`, `pdo_mysql`, `pcntl`, `posix`, `exif` |
 | Database | MySQL 8 o MariaDB 10.11+, **due database**: applicazione (`DB_DATABASE`) e utenti (`DB_DATABASE_USER`) |
 | Web server | document root su `public_html/`, HTTPS obbligatorio (QR delle etichette, fotocamera del telefono) |
-| Node.js | 20+ solo per compilare gli asset durante il rilascio |
+| Node.js | non serve in produzione: gli asset compilati sono nel repository (solo `BUILD_ASSETS=1` li ricompila) |
 | Supervisor | worker delle code |
 | Cron | scheduler di Laravel e backup notturno |
 | `mysqldump` | backup |
@@ -57,7 +57,7 @@ git pull origin dev   # oppure checkout del tag
 1. manutenzione;
 2. backup dei due database;
 3. dipendenze PHP;
-4. asset Vite di Geo, Roosko, Activity e del tema;
+4. symlink degli asset: `public_html/assets/{modulo}` → `Modules/{Modulo}/public` e `public_html/themes/{Tema}` → `Themes/{Tema}/public` (`xot:module-link`, `xot:theme-link`);
 5. migrazioni;
 6. cache;
 7. `queue:restart`;
@@ -68,8 +68,8 @@ Se un passo fallisce l'app **resta in manutenzione**: si legge l'errore, si corr
 `php artisan up` a mano solo se codice e database sono coerenti.
 
 Variabili utili:
-- `SKIP_ASSETS=1` se non sono cambiati JS o CSS;
-- `ASSET_DIRS="..."` per scegliere cosa compilare.
+- `BUILD_ASSETS=1` per ricompilare gli asset sul server (serve Node 20+); di norma non serve, perché i bundle sono versionati;
+- `ASSET_DIRS="..."` per scegliere cosa ricompilare (default: Geo, Roosko e il tema TwentyOne).
 
 ## 4. Controlli
 
@@ -132,6 +132,7 @@ php artisan optimize:clear && php artisan up
 | Sintomo | Causa | Rimedio |
 |---|---|---|
 | Login: «I dati di accesso non sono corretti» con password giusta | manca il ruolo del pannello (`roosko::admin`, `waste::admin`, …) | assegnarlo dal modulo User |
-| Pagina operatore senza fotocamera | asset non compilati | `cd laravel/Modules/Roosko && npm ci && npm run build` |
+| Pagina operatore senza fotocamera | manca il symlink `public_html/assets/roosko` | `php artisan xot:module-link` (lo esegue `deploy.sh`) |
+| Pagine pubbliche (login, recupero password) in errore «Vite manifest not found» | manca il symlink del tema | `php artisan xot:theme-link` (lo esegue `deploy.sh`) |
 | FIR digitali fermi «in attesa» | worker `rentri` o cron fermi | `supervisorctl status`, `roosko:production-check` |
 | Select dei comuni vuota | `comuni-istat.json` mancante nel modulo Geo | ripristinare il file dal repository di Geo |

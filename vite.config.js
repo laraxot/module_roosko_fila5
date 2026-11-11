@@ -7,17 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /*
- * Bundle della UI operatore. `outDir` DEVE coincidere con `publicDirectory` + `buildDirectory`
- * del plugin Laravel (stesso motivo documentato nel modulo Geo): il provider del pannello
- * carica `resources/js/scanner.js` con `Vite(..., 'assets/roosko')`.
- *
- * Il manifest PWA (`public/manifest.webmanifest`) e l'icona si pubblicano con
- * `php artisan vendor:publish --tag=roosko-assets`; il service worker e' servito dalla
- * route `roosko.service-worker`.
+ * Bundle della UI operatore. La build va nella cartella `public/` del modulo, che e' servita da
+ * `public_html/assets/roosko` tramite symlink (`php artisan xot:module-link`): niente copie in
+ * public_html. Il provider del pannello carica `resources/js/scanner.js` con
+ * `Vite(..., 'assets/roosko')`, cioe' `public_html/assets/roosko/manifest.json` attraverso il link.
+ * Gli asset compilati sono versionati: il server di produzione non ha bisogno di Node.
  */
 export default defineConfig({
     build: {
-        outDir: '../../../public_html/assets/roosko',
+        outDir: resolve(__dirname, 'public'),
         emptyOutDir: false,
         manifest: 'manifest.json',
         rollupOptions: {

@@ -170,7 +170,7 @@ clienti non entra; un cliente di cui non è membro risponde 404.
 
 - Campo di scansione sempre a fuoco: i lettori in **keyboard wedge** digitano il codice e Invio.
 - Bottone fotocamera: componente Alpine `rooskoScanner` (`resources/js/scanner.js`, npm `qr-scanner`,
-  bundle vite del modulo in `public_html/assets/roosko`, caricato solo su questa pagina).
+  bundle vite in `public/assets` del modulo, servito da `public_html/assets/roosko` tramite symlink, caricato solo su questa pagina).
 - Scansione di un'unità → scheda (codice, EER, peso, posizione, stato) e azioni: Stocca/Sposta
   (seconda scansione = posizione), Avvia trattamento, Aggiungi a uscita, Ristampa etichetta,
   Rettifica peso. Scansione di una posizione → unità presenti.
@@ -182,11 +182,13 @@ clienti non entra; un cliente di cui non è membro risponde 404.
   tastiera passa a `inputmode="text"` per digitare il codice dal telefono (scelta ricordata sul dispositivo).
 - Un'unità caricata su un'uscita è `reserved`: Stocca/Sposta e Avvia trattamento non sono disponibili
   finché non viene tolta dall'uscita (o l'uscita annullata).
-- PWA minima: `public/manifest.webmanifest` + icona (pubblicati con
-  `php artisan vendor:publish --tag=roosko-assets`), service worker servito dalla route
+- PWA minima: `public/manifest.webmanifest` + icona (serviti dal symlink
+  `public_html/assets/roosko` → `Modules/Roosko/public`, creato da `php artisan xot:module-link`), service worker servito dalla route
   `roosko.service-worker` (`/roosko/sw.js`, scope `/roosko/`) che mette in cache solo asset statici.
 
-Build: `cd Modules/Roosko && npm install && npm run build`.
+Build: `cd Modules/Roosko && npm ci && npm run build`. L'output (`public/manifest.json`, `public/assets/`)
+è versionato: il server di produzione non compila e non ha bisogno di Node. Dopo una modifica a
+`resources/js/` si ricompila e si committa anche il bundle.
 
 ## Integrità e concorrenza
 
