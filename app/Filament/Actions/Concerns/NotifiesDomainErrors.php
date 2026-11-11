@@ -8,6 +8,7 @@ use Closure;
 use DomainException;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Resources\RelationManagers\RelationManager;
 use InvalidArgumentException;
 use Livewire\Livewire;
 use Modules\Weighing\Exceptions\WeighingException;
@@ -55,10 +56,15 @@ trait NotifiesDomainErrors
      * Sulla pagina di dettaglio di un record le tabelle collegate (es. le unita' di un conferimento
      * appena accettato) non si aggiornano da sole dopo una action di testata: restavano vuote fino
      * al ricaricamento manuale. Si ricarica la pagina; la notifica arriva comunque (sessione).
+     *
+     * Vale anche per le action delle tabelle collegate (relation manager): caricare o togliere
+     * un'unita' cambia stato e totale dell'uscita nella testata, e «Spedisci» compariva solo dopo
+     * aver ricaricato la pagina a mano.
      */
     private function reloadRecordPage(): void
     {
-        if (! $this->getLivewire() instanceof ViewRecord || ! Livewire::isLivewireRequest()) {
+        $livewire = $this->getLivewire();
+        if (! ($livewire instanceof ViewRecord || $livewire instanceof RelationManager) || ! Livewire::isLivewireRequest()) {
             return;
         }
 

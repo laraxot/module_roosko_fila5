@@ -14,7 +14,10 @@ return [
         'recipient' => ['business_name' => ['label' => 'Destinatario']],
         'recipientSite' => ['name' => ['label' => 'Sede di destinazione']],
         'operation' => ['label' => 'Operazione'],
-        'fir_number' => ['label' => 'FIR'],
+        'fir_number' => [
+            'label' => 'FIR',
+            'draft_help' => 'FIR in bozza: completa trasportatore, targa e conducente nel pannello Rifiuti, poi «Cambia stato» → Emesso. Il FIR digitale lo emette RENTRI.',
+        ],
         'total_kg' => ['label' => 'Totale'],
         'dispatched_at' => ['label' => 'Spedita il'],
         'notes' => ['label' => 'Note'],

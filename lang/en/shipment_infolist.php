@@ -14,7 +14,10 @@ return [
         'recipient' => ['business_name' => ['label' => 'Recipient']],
         'recipientSite' => ['name' => ['label' => 'Destination site']],
         'operation' => ['label' => 'Operation'],
-        'fir_number' => ['label' => 'FIR'],
+        'fir_number' => [
+            'label' => 'FIR',
+            'draft_help' => 'Draft FIR: fill in carrier, plate and driver in the Waste panel, then «Change status» → Issued. A digital FIR is issued by RENTRI.',
+        ],
         'total_kg' => ['label' => 'Total'],
         'dispatched_at' => ['label' => 'Dispatched at'],
         'notes' => ['label' => 'Notes'],

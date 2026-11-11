@@ -63,3 +63,15 @@ App avviata con dati di prova, Playwright come utente reale:
 - **Waste**: pulsante "Modifica" su FIR non in bozza, che portava a una pagina 403.
 - **Rentri**: titolo della pagina di stato non tradotto.
 - **App**: 107 testi di Filament senza traduzione italiana (`lang/vendor`).
+
+## Seconda prova dell'uscita (2026-11-11)
+
+- **Spedisci compariva solo ricaricando la pagina**: caricare o togliere un'unità (tabella collegata) cambia
+  stato e totale dell'uscita, ma la testata restava quella di prima. `NotifiesDomainErrors::reloadRecordPage()`
+  ora ricarica la pagina anche dopo le action dei relation manager.
+- **FIR d'uscita invisibile**: nella scheda dell'uscita il campo FIR era vuoto, perché la bozza non ha numero. Ora
+  mostra «#id · Bozza» con il collegamento alla scheda nel pannello Rifiuti (solo per chi può aprirla) e spiega cosa
+  completare prima di emetterlo.
+- **Testo fuorviante**: «per il FIR si genera alla spedizione» → alla spedizione nasce la bozza; numero e
+  trasportatore si completano nel pannello Rifiuti, mentre il FIR digitale lo numera RENTRI.
+- In Waste il FIR cartaceo non si emette più senza numero e trasportatore (story `fir-cartaceo-numero-trasportatore`).

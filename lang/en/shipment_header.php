@@ -12,7 +12,7 @@ return [
         'recipient_site_id' => ['label' => 'Destination site'],
         'document_type' => ['label' => 'Document'],
         'operation' => ['label' => 'Destination operation', 'helper_text' => 'R/D code at the destination plant'],
-        'document_number' => ['label' => 'Document number', 'helper_text' => 'Delivery note or declaration of conformity; the FIR is generated on dispatch'],
+        'document_number' => ['label' => 'Document number', 'helper_text' => 'Delivery note or declaration of conformity. Leave empty for a FIR: it is created as a draft in the Waste panel on dispatch, where number and carrier are filled in (a digital FIR is numbered by RENTRI)'],
         'notes' => ['label' => 'Notes'],
     ],
 ];
