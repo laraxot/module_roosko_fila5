@@ -16,7 +16,7 @@ return [
         'operation' => ['label' => 'Operazione'],
         'fir_number' => [
             'label' => 'FIR',
-            'draft_help' => 'FIR in bozza: completa trasportatore, targa e conducente nel pannello Rifiuti, poi «Cambia stato» → Emesso. Il FIR digitale lo emette RENTRI.',
+            'draft_help' => 'FIR in bozza: completa numero del formulario, trasportatore, targa e conducente nel pannello Rifiuti, poi «Cambia stato» → Emesso. Il FIR digitale lo emette RENTRI.',
         ],
         'total_kg' => ['label' => 'Totale'],
         'dispatched_at' => ['label' => 'Spedita il'],

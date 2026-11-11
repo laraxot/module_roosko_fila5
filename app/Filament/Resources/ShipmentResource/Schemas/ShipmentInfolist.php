@@ -35,6 +35,7 @@ class ShipmentInfolist extends XotBaseResourceInfolist
                     'recipient_site' => TextEntry::make('recipientSite.name'),
                     'operation' => TextEntry::make('operation')->badge(),
                     'fir_number' => TextEntry::make('fir_number')
+                        ->columnSpan(2)
                         ->state(static fn (Shipment $record): ?string => self::firLabel($record))
                         ->url(static fn (Shipment $record): ?string => self::firUrl($record))
                         ->helperText(static fn (Shipment $record): ?string => self::fir($record)?->status === FirStatusEnum::DRAFT
