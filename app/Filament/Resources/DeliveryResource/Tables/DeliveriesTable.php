@@ -36,7 +36,7 @@ class DeliveriesTable extends XotBaseResourceTable
         return [
             'code' => TextColumn::make('code')->searchable()->sortable(),
             'arrived_at' => TextColumn::make('arrived_at')->dateTime()->sortable(),
-            'fir_number' => TextColumn::make('fir_number')->state(static fn (Delivery $record): ?string => $record->fir?->number),
+            'fir_number' => TextColumn::make('fir_number')->state(static fn (Delivery $record): string => $record->fir->displayNumber()),
             'status' => TextColumn::make('status')->badge()->sortable(),
             'accepted_kg' => TextColumn::make('accepted_kg')->numeric(3)->sortable(),
             'rejected_kg' => TextColumn::make('rejected_kg')->numeric(3)->toggleable(isToggledHiddenByDefault: true),

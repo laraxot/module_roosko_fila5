@@ -9,6 +9,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
+use Modules\Roosko\Models\Delivery;
 use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Modules\Roosko\Enums\DeliveryStatusEnum;
@@ -29,7 +30,7 @@ class CustomerDeliveriesTable extends XotBaseResourceTable
         return [
             'code' => TextColumn::make('code')->searchable()->sortable(),
             'arrived_at' => TextColumn::make('arrived_at')->dateTime()->sortable(),
-            'fir_number' => TextColumn::make('fir.number'),
+            'fir_number' => TextColumn::make('fir_number')->state(static fn (Delivery $record): string => $record->fir->displayNumber()),
             'producer_site' => TextColumn::make('fir.producerSite.name'),
             'ewc_code' => TextColumn::make('fir.ewcCode.display_code'),
             'accepted_kg' => TextColumn::make('accepted_kg')->numeric(3)->sortable(),

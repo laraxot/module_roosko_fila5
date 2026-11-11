@@ -3,8 +3,8 @@ title: Roosko — rapporto finale del ciclo audit → implementazione → verifi
 type: audit
 module: Roosko
 created: 2026-11-10
-updated: 2026-11-10
-scope: [base_roosko_fila5@dev, Roosko, Waste, Warehouse, Processing, Weighing, Labeling, Rentri, Tenant, User, Xot]
+updated: 2026-11-11
+scope: [base_roosko_fila5@dev, Roosko, Waste, Warehouse, Processing, Weighing, Labeling, Rentri, Tenant, User, Xot, Geo, Lang, TwentyOne]
 qmd: "rapporto finale roosko audit implementazione test phpstan rischi residui decisioni aperte"
 ---
 
@@ -12,7 +12,8 @@ qmd: "rapporto finale roosko audit implementazione test phpstan rischi residui d
 
 Questo rapporto chiude il ciclo iniziato con l'[audit del 5 novembre](README.md): rilievi →
 correzioni → test → review → nuove correzioni. Il [backlog](backlog.md) e la [roadmap](roadmap.md)
-restano la pianificazione. Qui c'e' lo stato verificato al 10 novembre 2026.
+restano la pianificazione. Qui c'e' lo stato verificato al 10 novembre 2026, aggiornato l'11 novembre
+dopo un secondo giro sui flussi nel browser e sulla messa in produzione (sezione 5, «11 novembre»).
 
 Differenza principale rispetto all'audit: allora **nessun test era stato eseguito** (niente PHP 8.4,
 niente `vendor/`). Ora ogni numero qui sotto viene da un'esecuzione reale. L'ambiente e' PHP 8.4.27,
@@ -20,7 +21,7 @@ Laravel 13.40, l'app base con i moduli di `dev` e sqlite come DB di test.
 
 ## 1. Sintesi
 
-- **Tutte le suite dei 7 moduli di dominio sono verdi**: 548 test, 0 falliti.
+- **Tutte le suite dei 7 moduli di dominio sono verdi**: 561 test, 0 falliti.
 - **PHPStan livello 10 a zero** sulle app dei 7 moduli di dominio e sui file toccati di Tenant.
 - **Corretti i rilievi critici e alti dell'audit di sicurezza**:
   - esecuzione di codice dai template delle etichette;
@@ -35,43 +36,51 @@ Laravel 13.40, l'app base con i moduli di `dev` e sqlite come DB di test.
   - via i residui di FixCity;
   - via la copia annidata dell'intera app dentro `Modules/Weighing`, 30.878 file.
 - **La CI esegue davvero i test**: nuovo `tests.yml` con PHP 8.4, un job Pest per modulo e PHPStan.
-- **Non pronto per la produzione** per 4 motivi:
-  - RENTRI non e' provato sull'ambiente demo;
-  - i segreti gia' esposti vanno ruotati;
-  - backup, restore e worker non sono documentati ne' provati;
-  - alcune decisioni spettano al committente (sezione 7).
+- **Rilascio preparato** (11 novembre):
+  - `deploy.sh` con backup, link degli asset, migrazioni, cache, riavvio delle code;
+  - il comando `roosko:production-check`;
+  - configurazione di supervisor e cron;
+  - runbook di produzione;
+  - asset compilati versionati: in produzione non serve Node;
+  - CI con controllo dei bundle e numerazione del registro su MariaDB.
+- **Restano fuori dal codice**, perché servono accessi o decisioni del committente:
+  - prova RENTRI sull'ambiente demo (R3);
+  - rotazione dei segreti esposti (R1);
+  - prova di ripristino del backup sul server;
+  - le decisioni della sezione 7.
 
 ## 2. Tabella sintetica
 
 | Area | Stato | Confidenza | Problemi aperti | Priorita' |
 |---|---|---|---|---|
-| Flussi d'impianto (conferimento → unita' → stoccaggio → lavorazione → uscita) | implementati, testati a livello di action | alta | prova end-to-end in browser | P2 |
+| Flussi d'impianto (conferimento → unita' → stoccaggio → lavorazione → uscita → FIR emesso) | implementati, testati e percorsi nel browser | alta | — | — |
 | Area cliente / cantieri | implementata, isolamento testato | alta | il cliente modifica `rentri_site_number` (decisione, sez. 7) | P2 |
 | Sicurezza applicativa | rilievi critici/alti corretti | alta | rotazione dei segreti esposti | P0 |
-| Registro e numerazione | immutabile, concorrenza testata con processi reali | alta (sqlite) / media (MySQL) | lock R4 non provato su MySQL | P1 |
-| RENTRI | client completo, idempotenza, redazione | media | 35 valori `DA VERIFICARE`; nessuna prova demo | P1 |
+| Registro e numerazione | immutabile, concorrenza testata con processi reali su sqlite e MariaDB | alta | — | — |
+| RENTRI | client completo, idempotenza anche sul registro, redazione | media | 35 valori `DA VERIFICARE`; nessuna prova demo | P1 |
 | Tenancy / connessioni | alias delle connessioni per transazioni atomiche | alta | 17 test di Tenant falliti, preesistenti, non di Roosko | P2 |
-| Repo base / CI | riproducibile; Tests e PHPStan in CI | media (prima run in corso) | molti workflow ereditati da rivedere | P1 |
-| Moduli condivisi (Xot, User, Tenant) nel base | in deriva rispetto ai repo | alta | li sincronizza chi li mantiene; 86/66/135 file diversi | P1 |
-| Documentazione | story BMAD per ogni intervento, manuale con screenshot | alta | capitolo del manuale sui nuovi pulsanti | P2 |
+| Repo base / CI | riproducibile; Pest, PHPStan, bundle e MariaDB in CI; workflow rotti del template rimossi | alta | `composer.lock` non versionato (decisione) | P2 |
+| Moduli condivisi nel base | allineati ai repo (Xot, User, Tenant, Lang, Geo, tema) | alta | suite condivise con fallimenti preesistenti | P2 |
+| Documentazione | story BMAD per ogni intervento, manuale per ruolo con schermate reali, PDF, runbook | alta | — | — |
+| Produzione | deploy, controlli, worker, cron, backup scritti | media | prova di restore sul server; RENTRI demo | P1 |
 
 ## 3. Punteggi (0–100)
 
-| Dimensione | 5 nov | 10 nov | Perche' e' cambiato |
-|---|---|---|---|
-| Architettura di dominio | 80 | 85 | lock e vincoli unici sui punti di concorrenza, lineage a diamante, `effective()` per le rettifiche |
-| Completezza funzionale (impianto) | 65 | 75 | prenotazioni sulle uscite, scansione LOC, lavorazioni in corso, firma FIR |
-| Completezza funzionale (area cliente) | 65 | 80 | test di isolamento eseguiti e verdi |
-| Sicurezza | 60 | 80 | C1, A1–A4, M1, M2, M4, M5, B1, B2, B5 e B7 corretti; restano rotazione dei segreti e M6 |
-| Testing | 50 | 80 | 548 test eseguiti e verdi; concorrenza reale con `pcntl_fork` |
-| Production readiness | 25 | 45 | CI e repo a posto; mancano RENTRI demo, backup, worker e rotazione dei segreti |
-| Documentazione | 55 | 75 | story per ogni intervento, manuale con screenshot per ruolo |
+| Dimensione | 5 nov | 10 nov | 11 nov | Perche' e' cambiato |
+|---|---|---|---|---|
+| Architettura di dominio | 80 | 85 | 88 | lock e vincoli unici sui punti di concorrenza, lineage a diamante, `effective()` per le rettifiche; policy con permessi operativi (il ruolo del pannello non da' piu' tutto) |
+| Completezza funzionale (impianto) | 65 | 75 | 88 | prenotazioni sulle uscite, scansione LOC, lavorazioni in corso, firma FIR; 11/11: flusso completo fino al FIR emesso, operazioni filtrate per autorizzazione, default dove la scelta e' unica |
+| Completezza funzionale (area cliente) | 65 | 80 | 85 | test di isolamento eseguiti e verdi |
+| Sicurezza | 60 | 80 | 85 | C1, A1–A4, M1, M2, M4, M5, B1, B2, B5 e B7 corretti; restano rotazione dei segreti e M6 |
+| Testing | 50 | 80 | 85 | 548 test eseguiti e verdi; concorrenza reale con `pcntl_fork` |
+| Production readiness | 25 | 45 | 75 | 11/11: deploy, controlli di produzione, worker, cron, backup, runbook, asset versionati; mancano RENTRI demo, rotazione dei segreti e prova di restore |
+| Documentazione | 55 | 75 | 90 | story per ogni intervento, manuale con screenshot per ruolo |
 
 ## 4. Risultati verificati
 
 ### Test Pest
 
-Eseguiti nella harness con PHP 8.4.27, Xot e User aggiornati a `dev` del 10/11.
+Eseguiti nella harness con PHP 8.4.27 e i moduli a `dev` dell'11/11; gli stessi job girano in CI.
 
 | Modulo | Esito | Asserzioni |
 |---|---|---|
@@ -79,9 +88,9 @@ Eseguiti nella harness con PHP 8.4.27, Xot e User aggiornati a `dev` del 10/11.
 | Weighing | 50 passed | 186 |
 | Warehouse | 77 passed | 192 |
 | Processing | 56 passed | 258 |
-| Waste | 143 passed | 322 |
-| Rentri | 57 passed | 180 |
-| Roosko | 117 passed | 442 |
+| Waste | 147 passed | 329 |
+| Rentri | 58 passed | 185 |
+| Roosko | 125 passed | 561 |
 | Tenant | 208 passed, 17 failed, 40 skipped | 1123 |
 
 I 17 test falliti di Tenant sono preesistenti. Prima dell'intervento erano 18. Riguardano funzioni
@@ -170,6 +179,45 @@ Restano piccole cose viste nelle schermate, non bloccanti:
 - il titolo «Rentri Status Page» non e' tradotto;
 - la pagina 404 del tema e' quella di FixCity.
 
+### 11 novembre: flussi percorsi di nuovo, messa in produzione
+
+Tutti i flussi sono stati percorsi di nuovo nel browser con i ruoli veri:
+
+- conferimento, pesata, accettazione, stoccaggio, trattamento e prodotto;
+- uscita e FIR emesso;
+- area clienti.
+
+Ogni difetto trovato e' corretto, con una story nel modulo proprietario.
+
+| Difetto | Effetto | Correzione |
+|---|---|---|
+| Il ruolo del pannello (`{modulo}::admin`) concedeva ogni abilita' | l'operatore di piazzale poteva rettificare pesi ed eliminare conferimenti | trait `RequiresOperationalPermissions` su tutte le 32 policy di dominio (Xot, Roosko, Waste, Warehouse, Processing, Weighing, Labeling, Rentri) |
+| `Spedisci` compariva solo ricaricando la pagina | dopo aver caricato le unita' l'uscita sembrava non spedibile | ricarica della pagina anche dopo le action delle tabelle collegate (Roosko) |
+| FIR d'uscita in bozza invisibile nella scheda dell'uscita | non si capiva dove completarlo | «#id · Bozza» con collegamento al pannello Rifiuti e istruzioni (Roosko) |
+| FIR cartaceo emesso senza numero e trasportatore | formulario non piu' modificabile e incompleto | blocco all'uscita dalla bozza, messaggio con i campi mancanti (Waste) |
+| Registro RENTRI: scritture in attesa di esito reinviabili | movimenti doppi sul registro nazionale (R2) | lock del registro ed esclusione delle scritture `pending`/`submitted` (Rentri) |
+| Operazioni del trattamento non filtrate | si poteva scegliere un'operazione non autorizzata per quel codice | elenco dalle operazioni autorizzate (Waste `GetAuthorizedOperationsAction`) |
+| Indirizzo dei cantieri con codici ISTAT | «Viale delle Nazioni 12, 39014, 39, 48122» | «… 48122 Ravenna (RA)» (Geo `FormatAddressAction`) |
+| Elenco dei comuni di 4 righe | indirizzi in Emilia-Romagna non registrabili | elenco ISTAT completo, 7.904 comuni (Geo) |
+| Riepiloghi delle dashboard con «Nuovo», selezione e cambio layout | anche il cliente vedeva «Nuovo» | trait `ReadOnlyTableWidget` (Roosko) |
+| «Pericoloso» con spunta verde | lettura invertita | triangolo ambra / trattino (Roosko) |
+| Tabella utenti in inglese, 2.271 traduzioni segnaposto | etichette come «Is active», aiuti uguali al nome del campo | traduzioni vere e comando `lang:clean-placeholders` (Lang, User e altri moduli) |
+| Build degli asset rotte (Geo con vite 8, Activity, tema) | `deploy.sh` si fermava lasciando l'app in manutenzione | bundle versionati nella cartella `public/` di moduli e temi, serviti da symlink relativi (`public_html/themes/<Tema>` → `../../laravel/Themes/<Tema>/public`); link relativi in Xot; `symlink:publish --force` non cancella piu' cartelle reali |
+| Workflow del template sempre rossi | rumore in CI | rimossi; CI con Pest per modulo, PHPStan, controllo dei bundle, numerazione su MariaDB |
+
+Per la produzione:
+
+- `deploy.sh`;
+- `deploy/backup-db.sh`, con i due database, compresso e conservato 30 giorni;
+- `deploy/supervisor/roosko-workers.conf`, con la coda `rentri` a un tentativo e `--timeout=180`;
+- `deploy/cron/roosko.cron`;
+- `queue.retry_after` portato a 240 s, sopra il timeout dei job RENTRI;
+- `.env.production.example`;
+- il comando `roosko:production-check`;
+- il [runbook](../operations/production-runbook.md);
+- la pagina d'ingresso `/it`;
+- le pagine di errore di Roosko.
+
 ### Moduli condivisi, suite complete
 
 Xot e User aggiornati a `dev` del 10/11:
@@ -184,13 +232,13 @@ uguali con e senza le correzioni di oggi. Vanno ripresi da chi mantiene quei mod
 | # | Rischio | Probabilita' | Impatto | Mitigazione |
 |---|---|---|---|---|
 | R1 | `APP_KEY`, password DB e IMAP, chiavi Matomo, Google Maps e Supermemory sono state committate in passato e restano nella storia git | certa (esposti) | alto | ruotarle. `APP_KEY` va ruotata con `APP_PREVIOUS_KEYS`, perche' la password del certificato RENTRI e' cifrata con quella chiave |
-| R2 | RENTRI: un timeout seguito da un retry puo' duplicare una trasmissione; `TransmitRegisterEntriesAction` non ha guardia di idempotenza | media | alto (dato legale) | chiave di idempotenza come per i FIR, prova sull'ambiente demo |
+| R2 | ~~RENTRI: trasmissione duplicata dopo timeout e retry~~ **chiuso l'11/11**: FIR e accettazioni con `exchangeOnce`, registro con lock ed esclusione delle scritture in trasmissione, `retry_after` 240 s sopra il timeout dei job | bassa | alto (dato legale) | resta la prova sull'ambiente demo (R3) |
 | R3 | 35 parametri RENTRI marcati `DA VERIFICARE` sullo Swagger demo | certa | alto | verifica con le credenziali demo dell'impianto |
-| R4 | Lock di riga sul registro provato solo su sqlite, dove `lockForUpdate` non fa nulla | bassa | alto | eseguire `ConcurrentRegisterNumberingTest` su MySQL o MariaDB |
-| R5 | Backup, restore, cron dello scheduler e supervisor della coda `rentri` non documentati; `deploy.sh` non revisionato | media | alto | runbook in `Roosko/docs` e una prova di restore |
+| R4 | ~~Lock di riga provato solo su sqlite~~ **chiuso l'11/11**: `ConcurrentRegisterNumberingTest` gira anche su MariaDB (job CI dedicato) | bassa | alto | — |
+| R5 | Backup, cron, supervisor e deploy ora scritti e documentati (runbook); **manca la prova di ripristino sul server** | bassa | alto | prova di restore prima dell'avvio, poi ogni trimestre |
 | R6 | Licenza OSL-3.0 di `spipu/html2pdf`, usata per le etichette PDF | da verificare | medio | parere legale o sostituzione |
 | R7 | `composer.lock` non versionato: ogni installazione risolve versioni diverse | media | medio | versionare il lock dell'app base (decisione, sez. 7) |
-| R8 | Copie di Xot, User, Tenant e Lang nel base non allineate ai repo (i marcatori di conflitto in Notify, Media, Job e Lang sono stati risolti a monte) | certa | medio | sync dei moduli condivisi da parte di chi li mantiene |
+| R8 | ~~Copie dei moduli condivisi non allineate~~ **chiuso l'11/11**: Xot, User, Tenant, Lang, Geo e il tema allineati ai repo | — | — | — |
 
 ## 7. Decisioni che spettano al committente
 
@@ -208,7 +256,7 @@ uguali con e senza le correzioni di oggi. Vanno ripresi da chi mantiene quei mod
 ## 8. Prossimi passi consigliati
 
 1. Rotazione dei segreti (R1) e conferma delle decisioni 1–3.
-2. RENTRI sull'ambiente demo: chiudere R2 e R3.
-3. Runbook di produzione: backup e restore provati, scheduler, worker della coda `rentri`, monitoraggio degli errori.
-4. Prova end-to-end in browser dei flussi d'impianto e dell'area cliente su MySQL.
-5. Risolvere i marcatori di conflitto in Notify, Media, Job e Lang; riallineare Xot, User e Tenant nel base.
+2. RENTRI sull'ambiente demo con le credenziali dell'impianto (R3).
+3. Sul server: prima installazione seguendo il runbook, `roosko:production-check` senza bloccanti, prova di ripristino del backup.
+4. Monitoraggio degli errori (Sentry o simile) e allarme sul controllo dello scheduler.
+5. Suite dei moduli condivisi (Xot, User, Geo, Lang): i fallimenti preesistenti vanno ripresi da chi li mantiene.

@@ -41,7 +41,7 @@ class CustomerLatestDeliveriesWidget extends XotBaseTableWidget
         return [
             'code' => TextColumn::make('code')->url(static fn (Delivery $record): string => CustomerDeliveryResource::getUrl('view', ['record' => $record])),
             'arrived_at' => TextColumn::make('arrived_at')->dateTime(),
-            'fir_number' => TextColumn::make('fir.number'),
+            'fir_number' => TextColumn::make('fir_number')->state(static fn (Delivery $record): string => $record->fir->displayNumber()),
             'producer_site' => TextColumn::make('fir.producerSite.name'),
             'accepted_kg' => TextColumn::make('accepted_kg')->numeric(3),
             'status' => TextColumn::make('status')->badge(),

@@ -45,7 +45,7 @@ class TodayDeliveriesWidget extends XotBaseTableWidget
         return [
             'code' => TextColumn::make('code')->url(static fn (Delivery $record): string => DeliveryResource::getUrl('view', ['record' => $record])),
             'arrived_at' => TextColumn::make('arrived_at')->time('H:i'),
-            'fir_number' => TextColumn::make('fir_number')->state(static fn (Delivery $record): ?string => $record->fir?->number),
+            'fir_number' => TextColumn::make('fir_number')->state(static fn (Delivery $record): string => $record->fir->displayNumber()),
             'status' => TextColumn::make('status')->badge(),
             'accepted_kg' => TextColumn::make('accepted_kg')->numeric(3),
         ];
